@@ -26,3 +26,16 @@ internal sealed class FixedTimeProvider(DateTimeOffset now) : TimeProvider
 		return now;
 	}
 }
+
+/// <summary>A clock that only moves when it is set, in UTC.</summary>
+internal sealed class ManualTimeProvider(DateTimeOffset now) : TimeProvider
+{
+	public DateTimeOffset Now { get; set; } = now;
+
+	public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
+
+	public override DateTimeOffset GetUtcNow()
+	{
+		return Now;
+	}
+}

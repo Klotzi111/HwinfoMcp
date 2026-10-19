@@ -15,7 +15,13 @@ namespace HwinfoMcp.Tests;
 /// </summary>
 public sealed class McpServerTests
 {
-	private static readonly string[] s_toolNames = ["get_cpu", "get_gpu", "get_memory", "get_readings", "hwinfo_status", "list_sensors"];
+	private static readonly string[] s_toolNames =
+	[
+		"get_cpu", "get_gpu", "get_memory", "get_readings", "hwinfo_status", "list_measurements", "list_sensors",
+		"start_measurement", "stop_measurement",
+	];
+
+	private static readonly string[] s_measurementControls = ["start_measurement", "stop_measurement"];
 
 	private static readonly string[] s_powerAndRelated = ["power", "related"];
 
@@ -36,7 +42,7 @@ public sealed class McpServerTests
 	}
 
 	[Fact]
-	public async Task ToolsList_ReturnsAllToolsAsReadOnly()
+	public async Task ToolsList_ReturnsAllTools_OnlyTheMeasurementControlsChangeState()
 	{
 		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
 
@@ -46,7 +52,7 @@ public sealed class McpServerTests
 		Assert.All(tools, tool =>
 		{
 			Assert.False(string.IsNullOrWhiteSpace(tool.Description));
-			Assert.True(tool.ProtocolTool.Annotations?.ReadOnlyHint);
+			Assert.Equal(!s_measurementControls.Contains(tool.Name), tool.ProtocolTool.Annotations?.ReadOnlyHint);
 			Assert.False(tool.ProtocolTool.Annotations?.DestructiveHint);
 			Assert.False(tool.ProtocolTool.Annotations?.OpenWorldHint);
 		});
@@ -152,6 +158,7 @@ public sealed class McpServerTests
 	[InlineData("get_cpu")]
 	[InlineData("get_gpu")]
 	[InlineData("get_memory")]
+	[InlineData("list_measurements")]
 	public async Task EveryTool_AnswersWithCompactJson(string tool)
 	{
 		await using var server = await TestServer.StartAsync(TestSnapshots.IntelNvidia);
@@ -292,7 +299,7 @@ public sealed class McpServerTests
 	[Fact]
 	public async Task LabelStyle_User_ReportsTheLabelsHwinfoDisplays()
 	{
-		var options = HwinfoServerOptions.Parse([HwinfoServerOptions.UserLabelsSwitch], out _);
+		var options = HwinfoServerOptions.Parse([HwinfoServerOptions.UserLabelsSwitch], NoEnvironment, out _, out _);
 		await using var server = await TestServer.StartAsync(TestSnapshots.AmdNvidiaGerman, options);
 
 		using var result = await server.CallAsync("get_cpu");
@@ -303,11 +310,134 @@ public sealed class McpServerTests
 	[Fact]
 	public void Options_KeepUnknownArguments()
 	{
-		var options = HwinfoServerOptions.Parse(["--verbose", "--USER-LABELS"], out var unknown);
+		var options = HwinfoServerOptions.Parse(["--verbose", "--USER-LABELS"], NoEnvironment, out var unknown, out var invalid);
 
 		Assert.Equal(LabelStyle.User, options.Labels);
 		Assert.Equal(["--verbose"], unknown);
-		Assert.Equal(LabelStyle.Original, HwinfoServerOptions.Parse([], out _).Labels);
+		Assert.Empty(invalid);
+		Assert.Equal(LabelStyle.Original, HwinfoServerOptions.Parse([], NoEnvironment, out _, out _).Labels);
+	}
+
+	[Fact]
+	public async Task Measurement_StartStopAndQueryItsStatistics()
+	{
+		await using var server = await TestServer.StartAsync(CpuSnapshot(TestSnapshots.PollTime, power: 50));
+
+		using (var started = await server.CallAsync("start_measurement", new() { ["name"] = "Gaming" }))
+		{
+			Assert.Equal("Gaming", started.RootElement.GetProperty("name").GetString());
+			Assert.Equal("1 GB", started.RootElement.GetProperty("memoryLimit").GetString());
+			Assert.False(started.RootElement.TryGetProperty("warning", out _));
+		}
+
+		server.Source.Snapshot = CpuSnapshot(TestSnapshots.PollTime.AddSeconds(1), power: 150);
+		using (var stopped = await server.CallAsync("stop_measurement", new() { ["name"] = "gaming" }))
+		{
+			Assert.Equal(2, stopped.RootElement.GetProperty("snapshots").GetInt32());
+			Assert.False(stopped.RootElement.TryGetProperty("warning", out _));
+			Assert.Contains("measurement \"Gaming\"", stopped.RootElement.GetProperty("hint").GetString(), StringComparison.Ordinal);
+		}
+
+		using var cpu = await server.CallAsync("get_cpu", new() { ["measurement"] = "GAMING" });
+
+		var root = cpu.RootElement;
+		Assert.Equal("measurement", root.EnumerateObject().First().Name);
+		Assert.Equal("Gaming", root.GetProperty("measurement").GetProperty("name").GetString());
+		Assert.False(root.GetProperty("measurement").TryGetProperty("hint", out _));
+		var power = root.GetProperty("cpus")[0].GetProperty("power")[0];
+		Assert.Equal("CPU Package Power", power.GetProperty("label").GetString());
+		Assert.False(power.TryGetProperty("value", out _));
+		Assert.Equal(50, power.GetProperty("min").GetDouble());
+		Assert.Equal(150, power.GetProperty("max").GetDouble());
+		Assert.Equal(100, power.GetProperty("median").GetDouble());
+		Assert.Equal(100, power.GetProperty("avg").GetDouble());
+		Assert.False(power.TryGetProperty("samples", out _));
+	}
+
+	[Theory]
+	[InlineData("get_readings")]
+	[InlineData("get_cpu")]
+	[InlineData("get_gpu")]
+	[InlineData("get_memory")]
+	public async Task DataTools_UnknownMeasurement_ReturnAnErrorThatSaysWhy(string tool)
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+
+		var result = await server.Client.CallToolAsync(
+			tool,
+			new Dictionary<string, object?> { ["measurement"] = "nope" },
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(result.IsError);
+		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
+		Assert.Contains("no stopped measurement named 'nope'", text, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task StartMeasurement_NameAlreadyRunning_IsAnError()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+		using var first = await server.CallAsync("start_measurement", new() { ["name"] = "a" });
+
+		var second = await server.Client.CallToolAsync(
+			"start_measurement",
+			new Dictionary<string, object?> { ["name"] = "A" },
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(second.IsError);
+		Assert.Contains("already running", Assert.IsType<TextContentBlock>(Assert.Single(second.Content)).Text, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task StartMeasurement_WithoutName_IsAnErrorThatSaysSo()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+
+		var result = await server.Client.CallToolAsync("start_measurement", cancellationToken: TestContext.Current.CancellationToken);
+
+		Assert.True(result.IsError);
+		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
+		Assert.StartsWith("Invalid arguments for 'start_measurement'", text, StringComparison.Ordinal);
+		Assert.Contains("'name'", text, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task ListMeasurements_ShowsRunningMeasurementsAndTheirMemory()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+		using var started = await server.CallAsync("start_measurement", new() { ["name"] = "render" });
+
+		using var list = await server.CallAsync("list_measurements");
+
+		var root = list.RootElement;
+		var running = Assert.Single(root.GetProperty("running").EnumerateArray());
+		Assert.Equal("render", running.GetProperty("name").GetString());
+		Assert.Equal(1, running.GetProperty("snapshots").GetInt32());
+		Assert.Empty(root.GetProperty("stopped").EnumerateArray());
+		Assert.Equal("1 GB", root.GetProperty("memory").GetProperty("limit").GetString());
+		Assert.False(root.GetProperty("memory").GetProperty("limitReached").GetBoolean());
+	}
+
+	[Fact]
+	public async Task MemoryLimit_ComesFromTheOptions()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd, new HwinfoServerOptions(MeasurementMemoryLimit: 1));
+
+		using var started = await server.CallAsync("start_measurement", new() { ["name"] = "a" });
+
+		Assert.Contains("memory limit of 1 bytes is reached", started.RootElement.GetProperty("warning").GetString(), StringComparison.Ordinal);
+	}
+
+	private static SensorSnapshot CpuSnapshot(DateTimeOffset pollTime, double power)
+	{
+		return new SnapshotBuilder(pollTime).Group("CPU [#0]: AMD Ryzen 9 7900X").Power("CPU Package Power", power).Build();
+	}
+
+	private static string? NoEnvironment(string name)
+	{
+		return null;
 	}
 
 	private static string[] EnumValues(JsonElement schema)

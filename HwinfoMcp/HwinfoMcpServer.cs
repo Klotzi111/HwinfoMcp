@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Hwinfo.SharedMemory;
 using HwinfoMcp.Json;
+using HwinfoMcp.Measurements;
 using HwinfoMcp.Sensors;
 using HwinfoMcp.Tools;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,8 @@ public static class HwinfoMcpServer
 		+ "Use get_cpu, get_gpu and get_memory for curated overviews, and list_sensors with get_readings for "
 		+ "anything else (drives, mainboard, fans, network, PresentMon/RTSS framerates, ...). "
 		+ "Every call returns current values; call again to see how they change. "
+		+ "To measure over a period, call start_measurement with a name and later stop_measurement, then pass the "
+		+ "name as measurement to get_cpu, get_gpu, get_memory or get_readings for min, max, median and average. "
 		+ "If a tool reports no data or stale data, check hwinfo_status.";
 
 	/// <summary>The version of the server, e.g. "1.2.0".</summary>
@@ -42,6 +45,8 @@ public static class HwinfoMcpServer
 		// One reader for the lifetime of the server: it caches the mapping and is thread-safe
 		services.TryAddSingleton(_ => new SharedMemoryReader());
 		services.TryAddSingleton<ISensorSource, HwinfoSensorSource>();
+		// One recorder for the lifetime of the server: it holds the measurements and their snapshots
+		services.TryAddSingleton<MeasurementRecorder>();
 
 		return services
 			.AddMcpServer(options =>
@@ -50,16 +55,18 @@ public static class HwinfoMcpServer
 				options.ServerInstructions = Instructions;
 			})
 			.WithTools<HwinfoTools>(HwinfoJson.ToolOptions)
+			.WithTools<MeasurementTools>(HwinfoJson.ToolOptions)
 			.WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
 			{
 				try
 				{
 					return await next(context, cancellationToken);
 				}
-				catch (JsonException ex)
+				catch (Exception ex) when (ex is JsonException or ArgumentException)
 				{
-					// The SDK binds the arguments with System.Text.Json before the tool runs, and would only
-					// answer "An error occurred invoking '...'." Name the allowed values instead.
+					// The SDK binds the arguments with System.Text.Json before the tool runs, throws an
+					// ArgumentException for a missing required one, and would only answer "An error occurred
+					// invoking '...'." Name the allowed values instead.
 					return ToolArgumentErrors.Create(context, ex);
 				}
 			}));

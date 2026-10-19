@@ -2,18 +2,27 @@
 using System.Text.RegularExpressions;
 using Hwinfo.SharedMemory;
 using HwinfoMcp.Catalog;
+using HwinfoMcp.Measurements;
 using HwinfoMcp.Sensors;
 
 namespace HwinfoMcp.Queries;
 
 /// <summary>
 /// When and how a query runs: the current time, which the age of the data is measured against, the time
-/// zone poll times are shown in, and which names to report.
+/// zone poll times are shown in, which names to report, and whether to report a measurement.
 /// </summary>
 /// <param name="Now">The current time.</param>
 /// <param name="TimeZone">The time zone poll times are shown in.</param>
 /// <param name="Labels">Whether to report HWiNFO's original names or the ones it displays.</param>
-public readonly record struct QueryContext(DateTimeOffset Now, TimeZoneInfo TimeZone, LabelStyle Labels = LabelStyle.Original)
+/// <param name="Measurement">
+/// The measurement to report the statistics of, instead of the current values. The query then runs on its
+/// <see cref="CompletedMeasurement.Readings"/>.
+/// </param>
+public readonly record struct QueryContext(
+	DateTimeOffset Now,
+	TimeZoneInfo TimeZone,
+	LabelStyle Labels = LabelStyle.Original,
+	CompletedMeasurement? Measurement = null)
 {
 	/// <summary>Creates the context for a query that runs now.</summary>
 	public static QueryContext From(TimeProvider timeProvider, LabelStyle labels = LabelStyle.Original)
@@ -151,7 +160,7 @@ public static class SensorQueries
 			: truncated ? Messages.Truncated(returned, matches.Count, MaxReadingLimit) : null;
 
 		var (pollTime, warning) = GetFreshness(snapshot, context);
-		return new ReadingsResult(pollTime, warning, matches.Count, returned, truncated, hint, groups);
+		return new ReadingsResult(pollTime, warning, matches.Count, returned, truncated, hint, groups, Summarize(context));
 	}
 
 	/// <summary>
@@ -210,7 +219,8 @@ public static class SensorQueries
 			cpus.Count == 0 ? Messages.NoCpu : null,
 			cpus,
 			relatedValues,
-			omitted
+			omitted,
+			Summarize(context)
 		);
 	}
 
@@ -260,7 +270,7 @@ public static class SensorQueries
 			.ToList();
 
 		var (pollTime, warning) = GetFreshness(snapshot, context);
-		return new GpuResult(pollTime, warning, SelectionName(selection), note, gpus);
+		return new GpuResult(pollTime, warning, SelectionName(selection), note, gpus, Summarize(context));
 	}
 
 	/// <summary>
@@ -310,26 +320,50 @@ public static class SensorQueries
 			NullIfEmpty(timings),
 			dimms.Count == 0 ? null : dimms,
 			NullIfEmpty(usage),
-			NullIfEmpty(controller)
+			NullIfEmpty(controller),
+			Summarize(context)
 		);
 	}
 
-	/// <summary>Converts a reading into what the tools report, values rounded to two decimals.</summary>
+	/// <summary>
+	/// Converts a reading into what the tools report, values rounded to two decimals. For a measurement, its min,
+	/// max, median and average instead of the current value.
+	/// </summary>
 	/// <param name="reading">The reading.</param>
-	/// <param name="context">Decides which label to report.</param>
-	/// <param name="includeStats">Whether to include min, max and average.</param>
+	/// <param name="context">Decides which label to report, and whether to report a measurement.</param>
+	/// <param name="includeStats">Whether to include min, max and average of the current values.</param>
 	/// <param name="group">The group to report the reading under, if any.</param>
 	public static ReadingValue ToValue(SensorReading reading, QueryContext context, bool includeStats, string? group = null)
 	{
+		var label = SensorClassifier.Label(reading, context.Labels);
 		var unit = reading.Unit.Trim();
+		if (context.Measurement is { } measurement)
+		{
+			var stats = measurement.StatsOf(reading);
+			return new ReadingValue(
+				label,
+				Value: null,
+				unit.Length == 0 ? null : unit,
+				Min: Round(stats.Min),
+				Max: Round(stats.Max),
+				Median: Round(stats.Median),
+				Avg: Round(stats.Avg),
+				Samples: stats.Samples == measurement.Snapshots ? null : stats.Samples,
+				Group: group
+			)
+			{
+				Measured = true,
+			};
+		}
+
 		return new ReadingValue(
-			SensorClassifier.Label(reading, context.Labels),
+			label,
 			Round(reading.Value),
 			unit.Length == 0 ? null : unit,
-			includeStats ? Round(reading.ValueMin) : null,
-			includeStats ? Round(reading.ValueMax) : null,
-			includeStats ? Round(reading.ValueAvg) : null,
-			group
+			Min: includeStats ? Round(reading.ValueMin) : null,
+			Max: includeStats ? Round(reading.ValueMax) : null,
+			Avg: includeStats ? Round(reading.ValueAvg) : null,
+			Group: group
 		);
 	}
 
@@ -392,8 +426,19 @@ public static class SensorQueries
 	private static (string PollTime, string? Warning) GetFreshness(SensorSnapshot snapshot, QueryContext context)
 	{
 		var pollTime = FormatTime(snapshot.PollTime, context);
+		// A measurement is old by nature; what its values don't cover is in its summary
+		if (context.Measurement is not null)
+		{
+			return (pollTime, null);
+		}
+
 		var age = GetAge(snapshot, context);
 		return (pollTime, age > SensorPatterns.StaleAfter ? Messages.Stale(age, pollTime) : null);
+	}
+
+	private static MeasurementSummary? Summarize(QueryContext context)
+	{
+		return context.Measurement is { } measurement ? MeasurementQueries.Summarize(measurement, context) : null;
 	}
 
 	/// <summary>

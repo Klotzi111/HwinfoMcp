@@ -61,7 +61,7 @@ public sealed class StdioServerTests
 		Assert.Equal(HwinfoMcpServer.Name, client.ServerInfo.Name);
 		Assert.Equal(HwinfoMcpServer.Version, client.ServerInfo.Version);
 		var tools = await client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
-		Assert.Equal(6, tools.Count);
+		Assert.Equal(9, tools.Count);
 
 		// Never an error: without HWiNFO the status says so
 		var status = await client.CallToolAsync("hwinfo_status", cancellationToken: TestContext.Current.CancellationToken);
@@ -139,6 +139,8 @@ public sealed class StdioServerTests
 		Assert.Equal(0, exitCode);
 		Assert.Contains("--dump <file.json>", stdout, StringComparison.Ordinal);
 		Assert.Contains(HwinfoServerOptions.UserLabelsSwitch, stdout, StringComparison.Ordinal);
+		Assert.Contains(HwinfoServerOptions.MeasurementMemoryLimitSwitch, stdout, StringComparison.Ordinal);
+		Assert.Contains(HwinfoServerOptions.MeasurementMemoryLimitVariable, stdout, StringComparison.Ordinal);
 	}
 
 	private static async Task<McpClient> StartAsync()

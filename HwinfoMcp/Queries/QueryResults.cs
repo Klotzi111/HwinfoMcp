@@ -156,16 +156,26 @@ public enum CpuSection
 	All,
 }
 
-/// <summary>One value as the tools report it.</summary>
+/// <summary>One value as the tools report it: the current one, or the statistics of a measurement.</summary>
 /// <param name="Label">The label: HWiNFO's original one, or the one it displays with --user-labels.</param>
 /// <param name="Value">
 /// The current value, rounded to two decimals. Null if HWiNFO reports no finite number; unlike the other members
-/// written as null rather than left out, so every reading has a value.
+/// written as null rather than left out, so every current reading has a value. Left out for a measurement.
 /// </param>
 /// <param name="Unit">The unit, e.g. "°C". Null if there is none.</param>
-/// <param name="Min">The minimum since HWiNFO started monitoring, on request only.</param>
-/// <param name="Max">The maximum since HWiNFO started monitoring, on request only.</param>
-/// <param name="Avg">The average since HWiNFO started monitoring, on request only.</param>
+/// <param name="Min">
+/// The minimum since HWiNFO started monitoring, on request only; or the minimum over a measurement.
+/// </param>
+/// <param name="Max">
+/// The maximum since HWiNFO started monitoring, on request only; or the maximum over a measurement.
+/// </param>
+/// <param name="Median">The median over a measurement.</param>
+/// <param name="Avg">
+/// The average since HWiNFO started monitoring, on request only; or the average over a measurement.
+/// </param>
+/// <param name="Samples">
+/// How many snapshots of a measurement have a value of the reading, if not all of them do.
+/// </param>
 /// <param name="Group">
 /// The sensor group the value comes from, where it isn't evident: in device overviews it is left out for
 /// the main group of the device and shortened to the suffix for its sub groups (e.g. "Enhanced").
@@ -176,8 +186,15 @@ public sealed record ReadingValue(
 	string? Unit,
 	double? Min = null,
 	double? Max = null,
+	double? Median = null,
 	double? Avg = null,
-	string? Group = null);
+	int? Samples = null,
+	string? Group = null)
+{
+	/// <summary>Whether the reading reports the statistics of a measurement. Its value is then left out of the JSON.</summary>
+	[JsonIgnore]
+	public bool Measured { get; init; }
+}
 
 /// <summary>The answer of hwinfo_status.</summary>
 public sealed record StatusResult(
@@ -209,6 +226,7 @@ public sealed record SensorListResult(
 public sealed record SensorGroupInfo(string Name, string Category, int Readings, IReadOnlyDictionary<string, int> Types);
 
 /// <summary>The answer of get_readings.</summary>
+/// <param name="Measurement">The measurement the values are of; null for current values.</param>
 public sealed record ReadingsResult(
 	string PollTime,
 	string? Warning,
@@ -216,7 +234,8 @@ public sealed record ReadingsResult(
 	int Returned,
 	bool Truncated,
 	string? Hint,
-	IReadOnlyList<ReadingGroup> Groups);
+	IReadOnlyList<ReadingGroup> Groups,
+	[property: JsonPropertyOrder(-1)] MeasurementSummary? Measurement = null);
 
 /// <summary>The readings of one sensor group in the answer of get_readings.</summary>
 public sealed record ReadingGroup(string Sensor, IReadOnlyList<ReadingValue> Readings);
@@ -226,6 +245,7 @@ public sealed record ReadingGroup(string Sensor, IReadOnlyList<ReadingValue> Rea
 /// CPU related readings from other groups, e.g. the mainboard's CPU temperature and fan. On request only.
 /// </param>
 /// <param name="Omitted">"related" if there are related readings that weren't asked for.</param>
+/// <param name="Measurement">The measurement the values are of; null for current values.</param>
 public sealed record CpuResult(
 	string PollTime,
 	string? Warning,
@@ -233,21 +253,25 @@ public sealed record CpuResult(
 	string? Note,
 	IReadOnlyList<DeviceReadings> Cpus,
 	IReadOnlyList<ReadingValue>? Related,
-	IReadOnlyList<string>? Omitted = null);
+	IReadOnlyList<string>? Omitted = null,
+	[property: JsonPropertyOrder(-1)] MeasurementSummary? Measurement = null);
 
 /// <summary>The answer of get_gpu.</summary>
+/// <param name="Measurement">The measurement the values are of; null for current values.</param>
 public sealed record GpuResult(
 	string PollTime,
 	string? Warning,
 	string Requested,
 	string? Note,
-	IReadOnlyList<DeviceReadings> Gpus);
+	IReadOnlyList<DeviceReadings> Gpus,
+	[property: JsonPropertyOrder(-1)] MeasurementSummary? Measurement = null);
 
 /// <summary>The answer of get_memory.</summary>
 /// <param name="Timings">The readings of the memory timings group.</param>
 /// <param name="Dimms">One entry per memory module.</param>
 /// <param name="Usage">RAM, virtual memory and page file usage.</param>
 /// <param name="Controller">Memory controller readings of the CPU groups: UCLK, FCLK, DRAM bandwidth.</param>
+/// <param name="Measurement">The measurement the values are of; null for current values.</param>
 public sealed record MemoryResult(
 	string PollTime,
 	string? Warning,
@@ -255,7 +279,8 @@ public sealed record MemoryResult(
 	IReadOnlyList<ReadingValue>? Timings,
 	IReadOnlyList<DimmReadings>? Dimms,
 	IReadOnlyList<ReadingValue>? Usage,
-	IReadOnlyList<ReadingValue>? Controller);
+	IReadOnlyList<ReadingValue>? Controller,
+	[property: JsonPropertyOrder(-1)] MeasurementSummary? Measurement = null);
 
 /// <summary>The readings of one memory module.</summary>
 public sealed record DimmReadings(string Name, IReadOnlyList<ReadingValue> Readings);

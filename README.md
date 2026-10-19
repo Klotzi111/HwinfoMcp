@@ -14,7 +14,7 @@ For local development and usage combined it's simplest to install it as a .NET g
 
 HWiNFO can publish its sensor readings through a shared memory section. HwinfoMcp reads that section with
 [Hwinfo.SharedMemory.Net](https://github.com/Seraksab/Hwinfo.SharedMemory.Net) on every tool call and returns
-compact JSON.
+compact JSON. While a [measurement](https://github.com/Klotzi111/HwinfoMcp#measurements) runs, it also reads it every 250 ms and records each new poll.
 
 - **Read-only.** It never writes to the shared memory and never starts or controls HWiNFO.
 - **No admin rights, no network access, no telemetry.**
@@ -83,6 +83,7 @@ Check the connection with `claude mcp list` or `/mcp` inside Claude Code.
 | Argument | Effect |
 |----------|--------|
 | `--user-labels` | Report sensor groups and readings by the names HWiNFO displays (translated, or renamed by you) instead of HWiNFO's original English names. |
+| `--measurement-memory-limit <size>` | The most memory the recorded snapshots of all running [measurements](https://github.com/Klotzi111/HwinfoMcp#measurements) may take, e.g. `512MB` or `2GB` (1 KB = 1024 bytes). Default: `1GB`. Also settable through the environment variable `HWINFO_MCP_MEASUREMENT_MEMORY_LIMIT`; the option wins. |
 | `--dump <file.json> [description]` | Don't start the server: record the current sensor data to a JSON file, see [below](https://github.com/Klotzi111/HwinfoMcp#a-value-ends-up-in-the-wrong-place). |
 | `--version` | Print the version and exit. |
 | `--help` | Print the usage and exit. |
@@ -99,19 +100,50 @@ names.
 
 ## Tools
 
-All tools are read-only. Values are rounded to two decimals. Min, max and average (since HWiNFO started
+All tools except `start_measurement` and `stop_measurement` are read-only, and those two only change the
+server's own measurements. Values are rounded to two decimals. Min, max and average (since HWiNFO started
 monitoring) are only included with `includeStats: true`. `get_cpu` and `get_gpu` keep their default answer
 short and name the sections they shortened or left out in `omitted`, so Claude knows what it can request with
-`include`.
+`include`. Given `measurement`, the data tools report a stopped [measurement](https://github.com/Klotzi111/HwinfoMcp#measurements) instead of the
+current values.
 
 | Tool | Parameters | What it returns |
 |------|------------|-----------------|
 | `hwinfo_status` | – | Whether HWiNFO's data is readable, time and age of the last poll, number of sensor groups and readings, a warning if the data is stale. |
 | `list_sensors` | – | Every sensor group with its category (`cpu`, `dgpu`, `igpu`, `memory`, `dimm`, `system`, `other`), number of readings and readings per measurement type. |
-| `get_readings` | `sensor`, `label`, `types`, `includeStats`, `limit` | Any readings, filtered by part of the sensor group name, part of the label and measurement types (`Temp`, `Volt`, `Fan`, `Current`, `Power`, `Clock`, `Usage`, `Other`). Returns at most `limit` readings (default 100, max 2000) and says when it cut the answer short. |
-| `get_cpu` | `detail` (`summary`/`full`), `include`, `includeStats` | Curated CPU overview: main power ("CPU Package Power"), temperatures, usage, memory controller (UCLK, FCLK, DRAM bandwidth), clocks, throttling. The rarely needed sections come only with `include`: `power` (all power readings), `voltages`, `currents` (incl. TDC/EDC), `limits` (PPT, TDC, EDC, thermal limit), `other`, `related` (CPU readings of other groups: mainboard CPU temperature and fan, Vcore, memory clock), or `all`. `summary` leaves out per-core values, C-state residencies are always left out. |
-| `get_gpu` | `type` (`dgpu`/`igpu`/`all`), `include`, `includeStats` | Curated GPU overview: main power (NVIDIA's and Intel's "GPU Power", AMD's board power), temperatures incl. hotspot and memory junction, usage, memory controller load and memory clock, VRAM usage, clocks, throttling. The rarely needed sections come only with `include`: `power` (all power readings: chip, rails, connectors), `voltages`, `currents`, `limits`, `fans`, `other`, or `all`. Defaults to the discrete GPU and falls back to the integrated one. |
-| `get_memory` | `includeStats` | Memory clock and timings (Tcas, Trcd, Trp, Tras, Trc, Trfc, command rate), every DIMM (temperatures, voltages, power), RAM and page file usage, and the CPU's memory controller readings. |
+| `get_readings` | `sensor`, `label`, `types`, `includeStats`, `limit`, `measurement` | Any readings, filtered by part of the sensor group name, part of the label and measurement types (`Temp`, `Volt`, `Fan`, `Current`, `Power`, `Clock`, `Usage`, `Other`). Returns at most `limit` readings (default 100, max 2000) and says when it cut the answer short. |
+| `get_cpu` | `detail` (`summary`/`full`), `include`, `includeStats`, `measurement` | Curated CPU overview: main power ("CPU Package Power"), temperatures, usage, memory controller (UCLK, FCLK, DRAM bandwidth), clocks, throttling. The rarely needed sections come only with `include`: `power` (all power readings), `voltages`, `currents` (incl. TDC/EDC), `limits` (PPT, TDC, EDC, thermal limit), `other`, `related` (CPU readings of other groups: mainboard CPU temperature and fan, Vcore, memory clock), or `all`. `summary` leaves out per-core values, C-state residencies are always left out. |
+| `get_gpu` | `type` (`dgpu`/`igpu`/`all`), `include`, `includeStats`, `measurement` | Curated GPU overview: main power (NVIDIA's and Intel's "GPU Power", AMD's board power), temperatures incl. hotspot and memory junction, usage, memory controller load and memory clock, VRAM usage, clocks, throttling. The rarely needed sections come only with `include`: `power` (all power readings: chip, rails, connectors), `voltages`, `currents`, `limits`, `fans`, `other`, or `all`. Defaults to the discrete GPU and falls back to the integrated one. |
+| `get_memory` | `includeStats`, `measurement` | Memory clock and timings (Tcas, Trcd, Trp, Tras, Trc, Trfc, command rate), every DIMM (temperatures, voltages, power), RAM and page file usage, and the CPU's memory controller readings. |
+| `start_measurement` | `name` | Starts a named measurement: HWiNFO's current poll and every new one until it is stopped. |
+| `stop_measurement` | `name` | Stops a measurement and evaluates it. Returns duration, number of snapshots and the periods without snapshots; the values come from the data tools with `measurement`. |
+| `list_measurements` | – | The running measurements, the stopped ones that can be queried, and the memory the recorded snapshots take compared to the limit. |
+
+## Measurements
+
+The data tools report the moment of the call. To see how values behave over a period, e.g. while a game or a
+benchmark runs, Claude starts a measurement with a name, stops it later, and then asks `get_cpu`, `get_gpu`,
+`get_memory` or `get_readings` with `measurement: "<name>"`. Instead of `value` they then report `min`, `max`,
+`median` and `avg` of every reading over the measurement, and the answer starts with a summary of the
+measurement.
+
+- **Every poll once.** While a measurement runs, the server reads HWiNFO's shared memory every 250 ms and
+  records a snapshot whenever HWiNFO polled again (its poll time changed, or any value did, as the poll time only
+  has whole seconds). How many snapshots a measurement gets depends on HWiNFO's polling period (Settings →
+  "Polling Period", 2000 ms by default). A measurement also includes the poll current at its start.
+- **Several at once, one copy.** Measurements running at the same time share their snapshots: each poll is kept
+  once, and each measurement only remembers where it started. A snapshot holds only the values; names and units
+  are shared as long as HWiNFO's sensors don't change. Snapshots no running measurement needs any more are
+  released. Measurements are only evaluated when they stop.
+- **Memory limit.** The snapshots of all running measurements together stay below
+  `--measurement-memory-limit` (default 1 GB, roughly 8 bytes per reading and poll: with 300 readings and a
+  2-second polling period that's days). Once the limit is reached, new polls aren't recorded until stopping
+  measurements frees memory. The stop then warns when the last snapshot before the gap was taken and how long
+  the measurement went unmeasured; `gaps` lists each such period.
+- **No data.** Periods in which HWiNFO delivered no new data for more than 60 seconds (closed, paused, or the
+  free version's 12 hours were up) are listed as gaps too. Stale values aren't recorded.
+- **Results.** The results of up to 100 stopped measurements are kept until the server stops. Starting a
+  measurement with the name of a stopped one replaces its result. Names are case-insensitive.
 
 ## Vendor independence
 

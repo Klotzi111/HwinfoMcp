@@ -1,4 +1,5 @@
 ﻿using HwinfoMcp.Catalog;
+using HwinfoMcp.Measurements;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ internal static partial class Program
 		MCP clients start it and talk JSON-RPC over stdin and stdout; it isn't meant to be used interactively.
 
 		Usage:
-		  HwinfoMcp [--user-labels]                   Run the MCP server.
+		  HwinfoMcp [options]                         Run the MCP server.
 		  HwinfoMcp --dump <file.json> [description]  Record the current sensor data to a JSON file.
 		  HwinfoMcp --version                         Print the version.
 		  HwinfoMcp --help                            Print this help.
@@ -33,6 +34,10 @@ internal static partial class Program
 		Options:
 		  --user-labels  Report the names HWiNFO displays (translated, or renamed by you) instead of
 		                 HWiNFO's original English names.
+		  --measurement-memory-limit <size>
+		                 The most memory the recorded snapshots of all running measurements may take,
+		                 e.g. 512MB or 2GB (1 KB = 1024 bytes). Default: 1GB. Also settable through the
+		                 environment variable HWINFO_MCP_MEASUREMENT_MEMORY_LIMIT; the option wins.
 
 		Commands like --dump must be the first argument. Switches are case-insensitive.
 		""";
@@ -62,7 +67,7 @@ internal static partial class Program
 			}
 		}
 
-		var serverOptions = HwinfoServerOptions.Parse(args, out var unknownArgs);
+		var serverOptions = HwinfoServerOptions.Parse(args, Environment.GetEnvironmentVariable, out var unknownArgs, out var invalidArgs);
 
 		// The empty builder skips the defaults that don't fit a stdio server launched from any working directory:
 		// appsettings.json files watched in the current directory, the Windows event log, and logs on stdout.
@@ -74,10 +79,21 @@ internal static partial class Program
 
 		using var host = builder.Build();
 		var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("HwinfoMcp");
-		LogStarted(logger, HwinfoMcpServer.Name, HwinfoMcpServer.Version, serverOptions.Labels);
+		LogStarted(
+			logger,
+			HwinfoMcpServer.Name,
+			HwinfoMcpServer.Version,
+			serverOptions.Labels,
+			ByteSize.Format(serverOptions.MeasurementMemoryLimit)
+		);
 		foreach (var arg in unknownArgs)
 		{
 			LogUnknownArgument(logger, arg);
+		}
+
+		foreach (var problem in invalidArgs)
+		{
+			LogInvalidArgument(logger, problem);
 		}
 
 		if (!Console.IsInputRedirected)
@@ -104,11 +120,16 @@ internal static partial class Program
 		logging.Services.Configure<ConsoleLoggerOptions>(options => options.LogToStandardErrorThreshold = LogLevel.Trace);
 	}
 
-	[LoggerMessage(Level = LogLevel.Information, Message = "{Name} {Version} started, reporting {Labels} labels")]
-	private static partial void LogStarted(ILogger logger, string name, string version, LabelStyle labels);
+	[LoggerMessage(
+		Level = LogLevel.Information,
+		Message = "{Name} {Version} started, reporting {Labels} labels, measurement memory limit {MemoryLimit}")]
+	private static partial void LogStarted(ILogger logger, string name, string version, LabelStyle labels, string memoryLimit);
 
 	[LoggerMessage(Level = LogLevel.Warning, Message = "Ignoring unknown argument {Argument}")]
 	private static partial void LogUnknownArgument(ILogger logger, string argument);
+
+	[LoggerMessage(Level = LogLevel.Warning, Message = "{Problem}")]
+	private static partial void LogInvalidArgument(ILogger logger, string problem);
 
 	[LoggerMessage(
 		Level = LogLevel.Warning,

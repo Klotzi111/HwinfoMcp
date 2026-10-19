@@ -1,8 +1,6 @@
 ﻿using System.ComponentModel;
-using System.Text.Json;
-using System.Text.Json.Serialization.Metadata;
 using Hwinfo.SharedMemory;
-using HwinfoMcp.Json;
+using HwinfoMcp.Measurements;
 using HwinfoMcp.Queries;
 using HwinfoMcp.Sensors;
 using ModelContextProtocol.Protocol;
@@ -11,15 +9,21 @@ using ModelContextProtocol.Server;
 namespace HwinfoMcp.Tools;
 
 /// <summary>
-/// The MCP tools. Each call reads the current data from HWiNFO's shared memory and answers with compact
-/// JSON. Without data, the data tools answer with an error result that says how to fix it.
+/// The MCP tools that report sensor data. Each call reads the current data from HWiNFO's shared memory and
+/// answers with compact JSON. Without data, the data tools answer with an error result that says how to fix it.
+/// Given a measurement, the data tools report its statistics instead.
 /// </summary>
 /// <param name="source">Where the sensor data comes from.</param>
+/// <param name="recorder">Holds the results of stopped measurements.</param>
 /// <param name="timeProvider">The clock the age of the data is measured with.</param>
 /// <param name="options">The server settings.</param>
 [McpServerToolType]
-public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider, HwinfoServerOptions options)
+public sealed class HwinfoTools(ISensorSource source, MeasurementRecorder recorder, TimeProvider timeProvider, HwinfoServerOptions options)
 {
+	private const string MeasurementDescription =
+		"The name of a stopped measurement (see start_measurement): report its min, max, median and average instead "
+		+ "of the current values. includeStats is then not needed.";
+
 	/// <summary>hwinfo_status</summary>
 	[McpServerTool(Name = "hwinfo_status", Title = "HWiNFO status", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
 	[Description(
@@ -28,8 +32,7 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		+ "version stops sharing after 12 hours). Use it when other tools report no data.")]
 	public CallToolResult HwinfoStatus()
 	{
-		var result = SensorQueries.GetStatus(source.Read(), Context());
-		return Success(result, HwinfoJson.Output.StatusResult);
+		return ToolResults.Success(SensorQueries.GetStatus(source.Read(), Context()));
 	}
 
 	/// <summary>list_sensors</summary>
@@ -40,7 +43,7 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		+ "Power, Clock, Usage, Other). Use it to find out what get_readings can query.")]
 	public CallToolResult ListSensors()
 	{
-		return Query(SensorQueries.ListSensors, HwinfoJson.Output.SensorListResult);
+		return Query(SensorQueries.ListSensors);
 	}
 
 	/// <summary>get_readings</summary>
@@ -58,12 +61,14 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
 		bool includeStats = false,
 		[Description("The most readings to return (1 to 2000).")]
-		int limit = SensorQueries.DefaultReadingLimit)
+		int limit = SensorQueries.DefaultReadingLimit,
+		[Description(MeasurementDescription)]
+		string? measurement = null)
 	{
 		SensorType[]? sensorTypes = types is null ? null : [.. types.Select(MeasurementTypes.ToSensorType)];
 		return Query(
 			(snapshot, context) => SensorQueries.GetReadings(snapshot, context, sensor, label, sensorTypes, includeStats, limit),
-			HwinfoJson.Output.ReadingsResult
+			measurement
 		);
 	}
 
@@ -83,11 +88,13 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		[Description("Rarely needed sections to include too, e.g. [\"limits\", \"related\"], or [\"all\"]. \"power\" returns all power readings instead of only the main one. Omit for none.")]
 		CpuSection[]? include = null,
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
-		bool includeStats = false)
+		bool includeStats = false,
+		[Description(MeasurementDescription)]
+		string? measurement = null)
 	{
 		return Query(
 			(snapshot, context) => SensorQueries.GetCpu(snapshot, context, detail, includeStats, include),
-			HwinfoJson.Output.CpuResult
+			measurement
 		);
 	}
 
@@ -105,11 +112,13 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		[Description("Rarely needed sections to include too, e.g. [\"power\", \"limits\"], or [\"all\"]. \"power\" returns all power readings instead of only the main one. Omit for none.")]
 		GpuSection[]? include = null,
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
-		bool includeStats = false)
+		bool includeStats = false,
+		[Description(MeasurementDescription)]
+		string? measurement = null)
 	{
 		return Query(
 			(snapshot, context) => SensorQueries.GetGpu(snapshot, context, type, includeStats, include),
-			HwinfoJson.Output.GpuResult
+			measurement
 		);
 	}
 
@@ -121,40 +130,45 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		+ "controller readings (UCLK, FCLK, DRAM bandwidth).")]
 	public CallToolResult GetMemory(
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
-		bool includeStats = false)
+		bool includeStats = false,
+		[Description(MeasurementDescription)]
+		string? measurement = null)
 	{
 		return Query(
 			(snapshot, context) => SensorQueries.GetMemory(snapshot, context, includeStats),
-			HwinfoJson.Output.MemoryResult
+			measurement
 		);
 	}
 
-	private CallToolResult Query<T>(Func<SensorSnapshot, QueryContext, T> query, JsonTypeInfo<T> typeInfo)
+	/// <summary>Runs a query on the current data, or on the readings of a stopped measurement if one is named.</summary>
+	private CallToolResult Query<T>(Func<SensorSnapshot, QueryContext, T> query, string? measurement = null)
 	{
+		if (!string.IsNullOrWhiteSpace(measurement))
+		{
+			CompletedMeasurement completed;
+			try
+			{
+				completed = recorder.GetCompleted(measurement);
+			}
+			catch (MeasurementException ex)
+			{
+				return ToolResults.Error(new MeasurementErrorResult(ex.Message));
+			}
+
+			return ToolResults.Success(query(completed.Readings, Context() with { Measurement = completed }));
+		}
+
 		var snapshot = source.Read();
 		if (!snapshot.IsAvailable)
 		{
-			var error = new UnavailableResult(Available: false, Error: Messages.NotAvailable(snapshot));
-			return new CallToolResult
-			{
-				IsError = true,
-				Content = [new TextContentBlock { Text = JsonSerializer.Serialize(error, HwinfoJson.Output.UnavailableResult) }],
-			};
+			return ToolResults.Error(new UnavailableResult(Available: false, Error: Messages.NotAvailable(snapshot)));
 		}
 
-		return Success(query(snapshot, Context()), typeInfo);
+		return ToolResults.Success(query(snapshot, Context()));
 	}
 
 	private QueryContext Context()
 	{
 		return QueryContext.From(timeProvider, options.Labels);
-	}
-
-	private static CallToolResult Success<T>(T result, JsonTypeInfo<T> typeInfo)
-	{
-		return new CallToolResult
-		{
-			Content = [new TextContentBlock { Text = JsonSerializer.Serialize(result, typeInfo) }],
-		};
 	}
 }
