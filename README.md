@@ -215,4 +215,5 @@ of this project's tests.
 
 ## License
 
-[MIT](https://github.com/Klotzi111/HwinfoMcp/blob/main/LICENSE)
+[MIT](https://github.com/Klotzi111/HwinfoMcp/blob/main/LICENSE). The executables include third-party software, see
+[THIRD-PARTY-NOTICES.md](https://github.com/Klotzi111/HwinfoMcp/blob/main/THIRD-PARTY-NOTICES.md).
