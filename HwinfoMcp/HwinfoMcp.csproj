@@ -2,6 +2,13 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
+		<!--
+			dotnet tools can't target a platform (NETSDK1146), so this is net10.0 instead of net10.0-windows.
+			The assembly is still declared Windows-only below, and the reader package, which only ships
+			net10.0-windows, is consumed through the fallback.
+		-->
+		<TargetFramework>net10.0</TargetFramework>
+		<AssetTargetFallback>$(AssetTargetFallback);net10.0-windows7.0</AssetTargetFallback>
 		<AssemblyName>HwinfoMcp</AssemblyName>
 		<RootNamespace>HwinfoMcp</RootNamespace>
 		<VersionPrefix>0.1.0</VersionPrefix>
@@ -10,19 +17,44 @@
 	</PropertyGroup>
 
 	<PropertyGroup Label="Native AOT">
-		<!-- Set here rather than only in the publish profile so the AOT and trim analyzers run on every build -->
-		<PublishAot>true</PublishAot>
+		<!--
+			Native AOT itself is switched on by the win-x64 publish profile. The analyzers run on every build,
+			so the code stays AOT and trim compatible even where only the dotnet tool is built.
+		-->
+		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
 		<InvariantGlobalization>true</InvariantGlobalization>
 	</PropertyGroup>
 
+	<PropertyGroup Label="dotnet tool">
+		<!-- dotnet tool install -g HwinfoMcp, see install-local.ps1 -->
+		<PackAsTool>true</PackAsTool>
+		<ToolCommandName>hwinfo-mcp-dotnet</ToolCommandName>
+		<PackageId>HwinfoMcp</PackageId>
+		<PackageTags>hwinfo;mcp;model-context-protocol;sensors;hardware-monitoring;claude</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageOutputPath>$(MSBuildProjectDirectory)\..\artifacts\nupkg\</PackageOutputPath>
+	</PropertyGroup>
+
 	<ItemGroup>
-		<PackageReference Include="Hwinfo.SharedMemory.Net" />
+		<None Include="..\README.md" Pack="true" PackagePath="\" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- NU1701: restored for net10.0-windows7.0 through AssetTargetFallback, which is fine on Windows -->
+		<PackageReference Include="Hwinfo.SharedMemory.Net" NoWarn="NU1701" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" />
 		<PackageReference Include="ModelContextProtocol" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="HwinfoMcp.Tests" />
+		<!-- HWiNFO and its shared memory only exist on Windows -->
+		<AssemblyAttribute Include="System.Runtime.Versioning.SupportedOSPlatformAttribute">
+			<_Parameter1>windows</_Parameter1>
+		</AssemblyAttribute>
 	</ItemGroup>
 
 </Project>

@@ -6,8 +6,8 @@ clocks, limits and throttling of the CPU and GPU, the memory controller (UCLK, F
 controller load), memory timings and DIMM sensors, plus everything else HWiNFO reports (drives, mainboard, fans,
 network, PresentMon framerates, ...).
 
-The server is called `hwinfo-mcp-dotnet`, runs over stdio and ships as a single `HwinfoMcp.exe` that needs no
-.NET installation.
+The server is called `hwinfo-mcp-dotnet` and runs over stdio. It ships as a single Native AOT `HwinfoMcp.exe`
+that needs no .NET installation, and as a .NET global tool with the command `hwinfo-mcp-dotnet`.
 
 > **Unofficial.** This project is not affiliated with, endorsed by or supported by HWiNFO or REALiX.
 > HWiNFO is a product of Martin Malík - REALiX.
@@ -35,9 +35,20 @@ compact JSON.
 
 ## Installation
 
-1. Download `HwinfoMcp.exe` from the [Releases](../../releases) page (a `.sha256` checksum is attached).
-2. Put it in a permanent location, e.g. `C:\Tools\HwinfoMcp\HwinfoMcp.exe`.
-3. Register it with your MCP client as shown below.
+Either way, the [Releases](../../releases) page has what you need.
+
+**As .NET global tool** (needs the .NET 10 runtime): download `HwinfoMcp.<version>.nupkg` into a folder,
+e.g. `C:\Tools\packages`, and install it from there. The command `hwinfo-mcp-dotnet` is then on the `PATH`:
+
+```powershell
+dotnet tool install -g HwinfoMcp --add-source C:\Tools\packages
+```
+
+**As standalone executable** (no .NET needed): download `HwinfoMcp.exe` (a `.sha256` checksum is attached)
+and put it in a permanent location, e.g. `C:\Tools\HwinfoMcp\HwinfoMcp.exe`. Use that path instead of
+`hwinfo-mcp-dotnet` below.
+
+To run your own build, see [Building from source](#building-from-source).
 
 ### Claude Desktop
 
@@ -48,7 +59,7 @@ Open Claude Desktop → Settings → Developer → Edit Config, which opens
 {
 	"mcpServers": {
 		"hwinfo": {
-			"command": "C:\\Tools\\HwinfoMcp\\HwinfoMcp.exe"
+			"command": "hwinfo-mcp-dotnet"
 		}
 	}
 }
@@ -59,7 +70,7 @@ Restart Claude Desktop. The server's log (stderr) ends up in Claude Desktop's MC
 ### Claude Code
 
 ```powershell
-claude mcp add --scope user hwinfo -- "C:\Tools\HwinfoMcp\HwinfoMcp.exe"
+claude mcp add --scope user hwinfo -- hwinfo-mcp-dotnet
 ```
 
 `--scope user` makes it available in all your projects; leave it out to add it to the current project only.
@@ -165,6 +176,21 @@ dotnet build
 dotnet test
 ```
 
+### Local install as global tool
+
+[`install-local.ps1`](install-local.ps1) packs the current build and (re)installs it as global tool, so MCP
+clients configured with the command `hwinfo-mcp-dotnet` run it:
+
+```powershell
+./install-local.ps1
+```
+
+The version gets a `local.<timestamp>` suffix (e.g. `0.1.0-local.20261019143000`), which the server reports
+to MCP clients. Close the MCP clients that run the server first, as it locks its files; the script refuses to
+run otherwise. Uninstall with `dotnet tool uninstall -g HwinfoMcp`.
+
+### Executables
+
 Publish the single-file Native AOT executable to `artifacts/publish/win-x64/HwinfoMcp.exe`:
 
 ```powershell
@@ -172,15 +198,19 @@ dotnet publish HwinfoMcp/HwinfoMcp.csproj -p:PublishProfile=win-x64
 ```
 
 Native AOT needs the MSVC linker, i.e. Visual Studio's "Desktop development with C++" workload or the Visual
-Studio Build Tools. Without it, the `win-x64-singlefile` profile builds a self-contained, trimmed single-file
-executable instead (larger, starts slower, also needs no .NET installation):
+Studio Build Tools; a MinGW/MSYS2 toolchain doesn't work. Without it, the `win-x64-singlefile` profile builds
+a framework-dependent single-file executable instead, which needs the .NET 10 runtime:
 
 ```powershell
 dotnet publish HwinfoMcp/HwinfoMcp.csproj -p:PublishProfile=win-x64-singlefile
 ```
 
+The project targets `net10.0` rather than `net10.0-windows` because .NET tools can't target a platform. It
+is declared Windows-only through `[SupportedOSPlatform("windows")]`, and the AOT and trim analyzers run on
+every build, so it stays Native AOT compatible.
+
 GitHub Actions builds and tests every push. Pushing a tag like `v1.2.3` publishes a release with
-`HwinfoMcp.exe`.
+`HwinfoMcp.exe` and the tool package `HwinfoMcp.<version>.nupkg`.
 
 ## Credits
 
