@@ -15,7 +15,7 @@ indent_style = tab
 indent_size = tab
 tab_size = 4
 
-spelling_languages = en-us,de-de
+spelling_languages = en-us
 
 [*.json]
 # json files should only be utf-8 without bom
