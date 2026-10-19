@@ -20,6 +20,13 @@ internal sealed class SnapshotBuilder(DateTimeOffset pollTime)
 		return this;
 	}
 
+	/// <summary>Adds the following readings to a group added before, as HWiNFO may list a group's readings apart.</summary>
+	public SnapshotBuilder ContinueGroup(string name)
+	{
+		_group = _sensors.Single(sensor => sensor.NameOrig == name);
+		return this;
+	}
+
 	public SnapshotBuilder Reading(SensorType type, string label, double value, string unit, string? userLabel = null)
 	{
 		var group = _group ?? throw new InvalidOperationException("Add a group first.");

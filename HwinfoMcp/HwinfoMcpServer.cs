@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
+using System.Text.Json;
 using Hwinfo.SharedMemory;
-using HwinfoMcp.Catalog;
 using HwinfoMcp.Json;
 using HwinfoMcp.Sensors;
 using HwinfoMcp.Tools;
@@ -9,35 +9,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using ModelContextProtocol.Protocol;
 
 namespace HwinfoMcp;
-
-/// <summary>The settings of the server, taken from the command line.</summary>
-/// <param name="Labels">Whether the tools report HWiNFO's original names or the ones it displays.</param>
-public sealed record HwinfoServerOptions(LabelStyle Labels = LabelStyle.Original)
-{
-	/// <summary>The command line switch that makes the tools report the names HWiNFO displays.</summary>
-	public const string UserLabelsSwitch = "--user-labels";
-
-	/// <summary>Reads the settings from the command line and returns the arguments it doesn't know.</summary>
-	public static HwinfoServerOptions Parse(IEnumerable<string> args, out IReadOnlyList<string> unknown)
-	{
-		var options = new HwinfoServerOptions();
-		var rest = new List<string>();
-		foreach (var arg in args)
-		{
-			if (arg.Equals(UserLabelsSwitch, StringComparison.OrdinalIgnoreCase))
-			{
-				options = options with { Labels = LabelStyle.User };
-			}
-			else
-			{
-				rest.Add(arg);
-			}
-		}
-
-		unknown = rest;
-		return options;
-	}
-}
 
 /// <summary>
 /// Registers the MCP server and its services. Shared by the program and the tests, which pick the transport
@@ -78,7 +49,20 @@ public static class HwinfoMcpServer
 				options.ServerInfo = new Implementation { Name = Name, Version = Version };
 				options.ServerInstructions = Instructions;
 			})
-			.WithTools<HwinfoTools>(HwinfoJson.ToolOptions);
+			.WithTools<HwinfoTools>(HwinfoJson.ToolOptions)
+			.WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
+			{
+				try
+				{
+					return await next(context, cancellationToken);
+				}
+				catch (JsonException ex)
+				{
+					// The SDK binds the arguments with System.Text.Json before the tool runs, and would only
+					// answer "An error occurred invoking '...'." Name the allowed values instead.
+					return ToolArgumentErrors.Create(context, ex);
+				}
+			}));
 	}
 
 	private static string GetVersion()

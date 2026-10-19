@@ -8,6 +8,8 @@ public sealed class ReadingsQueryTests
 {
 	private static readonly QueryContext s_fresh = QueryContext.From(TestSnapshots.FreshClock);
 
+	private static readonly string[] s_temperatureAndPowerUnits = ["°C", "W"];
+
 	[Fact]
 	public void NoFilter_IsLimitedAndSaysSo()
 	{
@@ -56,8 +58,35 @@ public sealed class ReadingsQueryTests
 
 		var readings = Assert.Single(result.Groups).Readings;
 		Assert.Equal(23, readings.Count);
-		Assert.All(readings, reading => Assert.Contains(reading.Unit, new[] { "°C", "W" }));
+		Assert.All(readings, reading => Assert.Contains(reading.Unit, s_temperatureAndPowerUnits));
 	}
+
+	[Fact]
+	public void ReadingsOfAGroupThatArentListedTogether_AreStillReportedAsOneGroup()
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("Mainboard")
+			.Temp("CPU", 60)
+			.Group("Drive")
+			.Temp("Drive Temperature", 40)
+			.ContinueGroup("Mainboard")
+			.Temp("System", 35)
+			.Build();
+
+		var result = SensorQueries.GetReadings(snapshot, s_fresh, sensor: null, label: null, types: null, includeStats: false, limit: 10);
+
+		Assert.Equal(["Mainboard", "Drive"], result.Groups.Select(group => group.Sensor));
+		Assert.Equal(["CPU", "System"], result.Groups[0].Readings.Select(reading => reading.Label));
+	}
+
+	[Theory]
+	[MemberData(nameof(MeasurementTypeValues))]
+	public void MeasurementTypes_MapToTheReadersTypeOfTheSameName(MeasurementType type)
+	{
+		Assert.Equal(type.ToString(), type.ToSensorType().ToString());
+	}
+
+	public static TheoryData<MeasurementType> MeasurementTypeValues => [.. Enum.GetValues<MeasurementType>()];
 
 	[Fact]
 	public void IncludeStats_AddsMinMaxAndAverage()

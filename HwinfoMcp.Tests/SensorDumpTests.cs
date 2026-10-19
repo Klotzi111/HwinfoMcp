@@ -48,4 +48,14 @@ public sealed class SensorDumpTests
 		Assert.Contains("\"unit\": \"°C\"", json, StringComparison.Ordinal);
 		Assert.Contains("\"type\": \"Temp\"", json, StringComparison.Ordinal);
 	}
+
+	[Fact]
+	public void Dump_EndsWithALineBreak()
+	{
+		using var stream = new MemoryStream();
+		SensorDump.FromSnapshot(TestSnapshots.IntelNvidia).Save(stream);
+
+		var json = System.Text.Encoding.UTF8.GetString(stream.ToArray());
+		Assert.EndsWith("}" + Environment.NewLine, json, StringComparison.Ordinal);
+	}
 }

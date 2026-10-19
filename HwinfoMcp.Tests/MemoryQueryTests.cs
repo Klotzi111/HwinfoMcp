@@ -45,7 +45,7 @@ public sealed class MemoryQueryTests
 		var result = SensorQueries.GetMemory(TestSnapshots.IntelNvidia, s_fresh, includeStats: true);
 
 		Assert.Equal(884, Find(result.Timings, "Trfc").Value);
-		var dimms = Assert.IsAssignableFrom<IReadOnlyList<DimmReadings>>(result.Dimms);
+		var dimms = Assert.IsType<IReadOnlyList<DimmReadings>>(result.Dimms, exactMatch: false);
 		Assert.Equal(
 			["DDR5 DIMM [#0]: Kingston KF556C36-16 (P0 CHANNEL A/DIMM 1)", "DDR5 DIMM [#2]: Kingston KF556C36-16 (P0 CHANNEL B/DIMM 1)"],
 			dimms.Select(dimm => dimm.Name)

@@ -1,7 +1,6 @@
 ﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Hwinfo.SharedMemory;
 using HwinfoMcp.Queries;
 using ModelContextProtocol;
 
@@ -23,7 +22,7 @@ namespace HwinfoMcp.Json;
 [JsonSerializable(typeof(GpuResult))]
 [JsonSerializable(typeof(MemoryResult))]
 // Tool parameters
-[JsonSerializable(typeof(SensorType[]))]
+[JsonSerializable(typeof(MeasurementType[]))]
 [JsonSerializable(typeof(CpuDetail))]
 [JsonSerializable(typeof(GpuSelection))]
 [JsonSerializable(typeof(GpuSection[]))]

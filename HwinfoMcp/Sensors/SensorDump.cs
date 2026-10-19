@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -76,10 +77,11 @@ public sealed record SensorDump(string? Description, DateTimeOffset PollTime, IR
 		return new SensorSnapshot(SnapshotState.Available, pollTime ?? PollTime, readings.ToImmutable(), sensors.ToImmutable());
 	}
 
-	/// <summary>Writes the dump as indented JSON.</summary>
+	/// <summary>Writes the dump as indented JSON, ending with a line break like any other text file.</summary>
 	public void Save(Stream stream)
 	{
 		JsonSerializer.Serialize(stream, this, s_json.SensorDump);
+		stream.Write(Encoding.UTF8.GetBytes(s_json.Options.NewLine));
 	}
 
 	/// <summary>Reads a dump written by <see cref="Save"/>.</summary>

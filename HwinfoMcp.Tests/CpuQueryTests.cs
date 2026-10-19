@@ -76,7 +76,7 @@ public sealed class CpuQueryTests
 		Assert.Null(cpu.Omitted);
 
 		// The memory clock comes from the memory timings group, the CPU fan from the mainboard
-		var related = Assert.IsAssignableFrom<IReadOnlyList<ReadingValue>>(result.Related);
+		var related = Assert.IsType<IReadOnlyList<ReadingValue>>(result.Related, exactMatch: false);
 		var memoryClock = Find(related, "Memory Clock");
 		Assert.Equal(3100, memoryClock.Value);
 		Assert.Equal("Memory Timings", memoryClock.Group);
@@ -214,6 +214,48 @@ public sealed class CpuQueryTests
 		Assert.Equal(1.3, Find(cpu.Voltages, "P-core 0 VID").Value);
 		Assert.Equal(100, Find(cpu.Usage, "E-core 16 T0 Usage").Value);
 		Assert.Equal(88, Find(cpu.Temperatures, "P-core 0").Value);
+	}
+
+	[Fact]
+	public void TwoSockets_AreReportedAsTwoCpusWithTheirOwnSubGroups()
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("CPU [#0]: Intel Xeon Gold 6430")
+			.Usage("Total CPU Usage", 40)
+			.Group("CPU [#0]: Intel Xeon Gold 6430: DTS")
+			.Temp("Core Max", 71)
+			.Group("CPU [#1]: Intel Xeon Gold 6430")
+			.Usage("Total CPU Usage", 60)
+			.Group("CPU [#0]: Intel Xeon Gold 6430: Enhanced")
+			.Power("CPU Package Power", 180)
+			.Power("IA Cores Power", 150)
+			.Group("CPU [#1]: Intel Xeon Gold 6430: DTS")
+			.Temp("Core Max", 77)
+			.Group("CPU [#1]: Intel Xeon Gold 6430: Enhanced")
+			.Power("CPU Package Power", 210)
+			.Power("IA Cores Power", 170)
+			.Build();
+
+		var result = SensorQueries.GetCpu(snapshot, s_fresh, CpuDetail.Summary, includeStats: false);
+
+		Assert.Collection(
+			result.Cpus,
+			first =>
+			{
+				Assert.Equal("CPU [#0]: Intel Xeon Gold 6430", first.Name);
+				Assert.Equal(3, first.SensorGroups.Count);
+				Assert.Equal(40, Find(first.Usage, "Total CPU Usage").Value);
+				Assert.Equal(71, Find(first.Temperatures, "Core Max").Value);
+				Assert.Equal(180, Assert.Single(first.Power!).Value);
+			},
+			second =>
+			{
+				Assert.Equal("CPU [#1]: Intel Xeon Gold 6430", second.Name);
+				Assert.Equal(3, second.SensorGroups.Count);
+				Assert.Equal(60, Find(second.Usage, "Total CPU Usage").Value);
+				Assert.Equal(77, Find(second.Temperatures, "Core Max").Value);
+				Assert.Equal(210, Assert.Single(second.Power!).Value);
+			});
 	}
 
 	[Fact]

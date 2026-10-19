@@ -134,14 +134,15 @@ public static class SensorQueries
 				&& (types is null || types.Count == 0 || types.Contains(reading.ReadingType)))
 			.ToList();
 
-		var groups = new List<ReadingGroup>();
-		foreach (var sensorReadings in matches.Take(limit).ChunkBy(reading => reading.Sensor))
-		{
-			groups.Add(new ReadingGroup(
-				context.Name(sensorReadings[0].Sensor),
+		// One entry per group, in the order HWiNFO lists them, even if a group's readings aren't listed together
+		var groups = matches
+			.Take(limit)
+			.GroupBy(reading => reading.Sensor)
+			.Select(sensorReadings => new ReadingGroup(
+				context.Name(sensorReadings.Key),
 				[.. sensorReadings.Select(reading => ToValue(reading, context, includeStats))]
-			));
-		}
+			))
+			.ToList();
 
 		var returned = Math.Min(limit, matches.Count);
 		var truncated = returned < matches.Count;
@@ -188,21 +189,17 @@ public static class SensorQueries
 			))
 			.ToList();
 
-		var related = new List<ReadingValue>();
-		foreach (var sensor in snapshot.Sensors)
+		// Only turned into values when asked for; otherwise it only matters whether there are any
+		var related = FindCpuRelatedReadings(snapshot.Sensors, readings);
+		List<ReadingValue>? relatedValues = null;
+		string[]? omitted = null;
+		if (includeRelated)
 		{
-			var category = SensorClassifier.CategorizeGroup(sensor);
-			if (category is not (GroupCategory.MemoryTimings or GroupCategory.Other))
-			{
-				continue;
-			}
-
-			var group = context.Name(sensor);
-			related.AddRange(readings[sensor]
-				.Where(reading => category == GroupCategory.MemoryTimings
-					? SensorClassifier.LabelMatches(SensorPatterns.MemoryController, reading)
-					: IsCpuRelated(reading))
-				.Select(reading => ToValue(reading, context, includeStats, group)));
+			relatedValues = NullIfEmpty([.. related.Select(item => ToValue(item.Reading, context, includeStats, context.Name(item.Group)))]);
+		}
+		else if (related.Any())
+		{
+			omitted = ["related"];
 		}
 
 		var (pollTime, warning) = GetFreshness(snapshot, context);
@@ -212,8 +209,8 @@ public static class SensorQueries
 			detail == CpuDetail.Full ? "full" : "summary",
 			cpus.Count == 0 ? Messages.NoCpu : null,
 			cpus,
-			includeRelated ? NullIfEmpty(related) : null,
-			includeRelated || related.Count == 0 ? null : ["related"]
+			relatedValues,
+			omitted
 		);
 	}
 
@@ -399,6 +396,35 @@ public static class SensorQueries
 		return (pollTime, age > SensorPatterns.StaleAfter ? Messages.Stale(age, pollTime) : null);
 	}
 
+	/// <summary>
+	/// The CPU readings of groups other than the CPU's own: the memory controller readings of the memory timings
+	/// group, and the CPU temperatures, fans, voltages, currents and power of mainboard, cooler and the like.
+	/// </summary>
+	private static IEnumerable<(SensorReading Reading, Sensor Group)> FindCpuRelatedReadings(
+		IEnumerable<Sensor> sensors,
+		ILookup<Sensor, SensorReading> readings)
+	{
+		foreach (var sensor in sensors)
+		{
+			var category = SensorClassifier.CategorizeGroup(sensor);
+			if (category is not (GroupCategory.MemoryTimings or GroupCategory.Other))
+			{
+				continue;
+			}
+
+			foreach (var reading in readings[sensor])
+			{
+				var isRelated = category == GroupCategory.MemoryTimings
+					? SensorClassifier.LabelMatches(SensorPatterns.MemoryController, reading)
+					: IsCpuRelated(reading);
+				if (isRelated)
+				{
+					yield return (reading, sensor);
+				}
+			}
+		}
+	}
+
 	private static bool IsCpuRelated(SensorReading reading)
 	{
 		return reading.ReadingType is SensorType.Temp or SensorType.Fan or SensorType.Volt or SensorType.Current or SensorType.Power
@@ -439,7 +465,7 @@ public static class SensorQueries
 		bool includeStats,
 		Func<Sensor, bool> includeGroup,
 		Func<SensorReading, bool> includeReading,
-		IReadOnlySet<ReadingCategory>? excludedSections = null,
+		HashSet<ReadingCategory>? excludedSections = null,
 		IReadOnlyList<Regex>? mainPowerPatterns = null)
 	{
 		var groups = device.Groups.Where(includeGroup).ToList();
@@ -534,33 +560,5 @@ public static class SensorQueries
 	private static List<ReadingValue>? NullIfEmpty(List<ReadingValue> values)
 	{
 		return values.Count == 0 ? null : values;
-	}
-
-	/// <summary>Splits a sequence into runs of consecutive elements with the same key.</summary>
-	private static IEnumerable<List<T>> ChunkBy<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
-	{
-		List<T>? chunk = null;
-		TKey? currentKey = default;
-		foreach (var item in source)
-		{
-			var key = keySelector(item);
-			if (chunk is null || !EqualityComparer<TKey>.Default.Equals(key, currentKey))
-			{
-				if (chunk is not null)
-				{
-					yield return chunk;
-				}
-
-				chunk = [];
-				currentKey = key;
-			}
-
-			chunk.Add(item);
-		}
-
-		if (chunk is not null)
-		{
-			yield return chunk;
-		}
 	}
 }

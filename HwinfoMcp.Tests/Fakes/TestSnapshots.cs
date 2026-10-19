@@ -1,7 +1,4 @@
-﻿using System.IO.MemoryMappedFiles;
-using System.Runtime.CompilerServices;
-using Hwinfo.SharedMemory;
-using HwinfoMcp.Sensors;
+﻿using HwinfoMcp.Sensors;
 
 namespace HwinfoMcp.Tests.Fakes;
 
@@ -16,11 +13,15 @@ internal static class TestSnapshots
 	/// <summary>A clock two seconds after <see cref="PollTime"/>, i.e. fresh data.</summary>
 	public static FixedTimeProvider FreshClock => new(PollTime.AddSeconds(2));
 
-	private static readonly Lazy<SensorSnapshot> s_amd = new(LoadAmdSnapshot);
+	/// <summary>The recording converted from the real shared memory dump <c>hwinfo-sm2-snapshot.bin</c>.</summary>
+	public const string AmdRecording = "amd-7900x-rx7800xt.json";
+
+	private static readonly Lazy<SensorSnapshot> s_amd = new(() => LoadDump(AmdRecording));
 
 	/// <summary>
 	/// The real shared memory dump of an AMD Ryzen 9 7900X with a Radeon RX 7800 XT (dGPU) and the CPU's
-	/// Radeon 610M (iGPU), read through the real <see cref="SharedMemoryReader"/>.
+	/// Radeon 610M (iGPU), replayed from its JSON recording. SharedMemorySnapshotTests checks that the
+	/// recording matches what the real reader makes of the dump.
 	/// </summary>
 	public static SensorSnapshot Amd => s_amd.Value;
 
@@ -39,41 +40,24 @@ internal static class TestSnapshots
 	/// </summary>
 	public static SensorSnapshot AmdNvidiaGerman => s_amdNvidiaGerman.Value;
 
-	/// <summary>Loads a JSON dump from the test data folder.</summary>
+	/// <summary>Loads a JSON dump from the test data folder, with <see cref="PollTime"/> as poll time.</summary>
 	public static SensorSnapshot LoadDump(string fileName)
 	{
-		using var stream = File.OpenRead(Path.Combine(AppContext.BaseDirectory, "TestData", fileName));
-		return SensorDump.Load(stream).ToSnapshot(PollTime);
+		return LoadRecording(fileName).ToSnapshot(PollTime);
 	}
 
-	private static SensorSnapshot LoadAmdSnapshot()
+	/// <summary>Loads a JSON dump from the test data folder as it was recorded.</summary>
+	public static SensorDump LoadRecording(string fileName)
 	{
-		var data = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "TestData", "hwinfo-sm2-snapshot.bin"));
-		// The poll time is the int64 at offset 12 of the header
-		BitConverter.GetBytes(PollTime.ToUnixTimeSeconds()).CopyTo(data, 12);
-
-		// HWiNFO's section lives in the Global namespace, which needs a privilege to create. A session local
-		// copy read through the reader's internal entry point exercises the same parsing.
-		var name = $"Local\\HwinfoMcp.Tests_{Guid.NewGuid():N}";
-		using var file = MemoryMappedFile.CreateNew(name, data.Length);
-		using (var accessor = file.CreateViewAccessor())
-		{
-			accessor.WriteArray(0, data, 0, data.Length);
-		}
-
-		using var reader = new SharedMemoryReader(new SharedMemoryReaderOptions { StalenessTimeout = TimeSpan.Zero });
-		if (!TryReadMemoryMappedFile(reader, name, out var readings))
-		{
-			throw new InvalidOperationException("The snapshot could not be read.");
-		}
-
-		return SensorSnapshot.FromReadings(readings);
+		using var stream = File.OpenRead(TestDataPath(fileName));
+		return SensorDump.Load(stream);
 	}
 
-	// Hwinfo.SharedMemory.Net 4.0.0 only reads the fixed section names publicly. If an update renames
-	// this internal method, the tests fail here with a MissingMethodException.
-	[UnsafeAccessor(UnsafeAccessorKind.Method, Name = "TryReadMemoryMappedFile")]
-	private static extern bool TryReadMemoryMappedFile(SharedMemoryReader reader, string fileName, out SensorReadings readings);
+	/// <summary>The path of a file in the test data folder.</summary>
+	public static string TestDataPath(string fileName)
+	{
+		return Path.Combine(AppContext.BaseDirectory, "TestData", fileName);
+	}
 
 	private static SensorSnapshot BuildIntelNvidia()
 	{

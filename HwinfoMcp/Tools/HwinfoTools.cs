@@ -54,14 +54,15 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 		[Description("Part of the reading label, case-insensitive, e.g. \"Power\", \"Hot Spot\", \"Fan\". Matches HWiNFO's original and its displayed (translated) labels.")]
 		string? label = null,
 		[Description("Measurement types to include, e.g. [\"Temp\", \"Power\", \"Usage\"]. Omit for all types.")]
-		SensorType[]? types = null,
+		MeasurementType[]? types = null,
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
 		bool includeStats = false,
 		[Description("The most readings to return (1 to 2000).")]
 		int limit = SensorQueries.DefaultReadingLimit)
 	{
+		SensorType[]? sensorTypes = types is null ? null : [.. types.Select(MeasurementTypes.ToSensorType)];
 		return Query(
-			(snapshot, context) => SensorQueries.GetReadings(snapshot, context, sensor, label, types, includeStats, limit),
+			(snapshot, context) => SensorQueries.GetReadings(snapshot, context, sensor, label, sensorTypes, includeStats, limit),
 			HwinfoJson.Output.ReadingsResult
 		);
 	}

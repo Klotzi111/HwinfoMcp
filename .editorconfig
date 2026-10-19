@@ -21,6 +21,16 @@ spelling_languages = en-us,de-de
 # json files should only be utf-8 without bom
 charset = utf-8
 
+[*.{yml,yaml}]
+# YAML doesn't allow tabs for indentation, and GitHub Actions and Dependabot expect utf-8 without bom
+indent_style = space
+indent_size = 2
+charset = utf-8
+
+[{.editorconfig,.gitattributes,.gitignore,LICENSE}]
+# Read by git, EditorConfig and GitHub's license detection, which expect plain utf-8
+charset = utf-8
+
 [*.vbs]
 # vbs files should only be windows 1250
 charset = windows-1250

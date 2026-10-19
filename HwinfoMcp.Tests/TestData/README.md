@@ -33,13 +33,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-The tests publish it under a session-local name and read it with the real `SharedMemoryReader`, see
-`TestSnapshots.cs`.
+The tests replay it from its JSON conversion `amd-7900x-rx7800xt.json` (see below). `SharedMemorySnapshotTests`
+publishes the dump under a session-local name, reads it with the real `SharedMemoryReader` and checks that the
+conversion still matches. That test is the only one that needs the reader's internal entry point for other section
+names, so a change there doesn't break the rest of the tests.
 
 ## JSON dumps
 
 Files written by `HwinfoMcp.exe --dump <file.json> [description]` (see `SensorDump`). The tests replay
 them as snapshots.
+
+- `amd-7900x-rx7800xt.json`: `hwinfo-sm2-snapshot.bin` above, converted with `SensorDump` (25 sensor groups,
+  470 readings).
 
 - `amd-7800x3d-rtx4080-de.json`: AMD Ryzen 7 7800X3D with its Radeon iGPU and an NVIDIA GeForce RTX 4080,
   recorded with HWiNFO set to German, so every group and label also carries a translated user name. Its GPU

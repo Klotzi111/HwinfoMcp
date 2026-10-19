@@ -20,6 +20,7 @@
 		<Authors>Klotzi111</Authors>
 		<Copyright>Copyright (c) Klotzi111</Copyright>
 		<RepositoryUrl>https://github.com/Klotzi111/HwinfoMcp</RepositoryUrl>
+		<PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
 	</PropertyGroup>
 
 </Project>

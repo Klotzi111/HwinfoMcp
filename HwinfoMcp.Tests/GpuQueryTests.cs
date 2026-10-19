@@ -229,6 +229,29 @@ public sealed class GpuQueryTests
 	}
 
 	[Fact]
+	public void TwoDiscreteGpus_AreBothReported()
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("GPU [#0]: NVIDIA GeForce RTX 4090")
+			.Power("GPU Power", 400)
+			.Power("GPU 16-pin HVPWR Power", 380)
+			.Group("GPU [#1]: NVIDIA GeForce RTX 4090")
+			.Power("GPU Power", 120)
+			.Power("GPU 16-pin HVPWR Power", 110)
+			.Group("GPU [#2]: Intel UHD Graphics 770")
+			.Power("GPU Power", 1)
+			.Build();
+
+		var discrete = SensorQueries.GetGpu(snapshot, s_fresh, GpuSelection.Dgpu, includeStats: false);
+		var integrated = SensorQueries.GetGpu(snapshot, s_fresh, GpuSelection.Igpu, includeStats: false);
+
+		Assert.Equal(["GPU [#0]: NVIDIA GeForce RTX 4090", "GPU [#1]: NVIDIA GeForce RTX 4090"], discrete.Gpus.Select(gpu => gpu.Name));
+		Assert.Equal([400.0, 120.0], discrete.Gpus.Select(gpu => Assert.Single(gpu.Power!).Value!.Value));
+		Assert.Null(discrete.Note);
+		Assert.Equal("GPU [#2]: Intel UHD Graphics 770", Assert.Single(integrated.Gpus).Name);
+	}
+
+	[Fact]
 	public void SubGroups_OfAGpu_AreReportedWithTheirSuffix()
 	{
 		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)

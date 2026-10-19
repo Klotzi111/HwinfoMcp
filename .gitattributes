@@ -1,0 +1,6 @@
+# Store every file exactly as it is: the repository keeps the CRLF line endings .editorconfig asks for, whatever
+# core.autocrlf a clone uses.
+* -text
+
+# Raw dumps of HWiNFO's shared memory
+*.bin binary

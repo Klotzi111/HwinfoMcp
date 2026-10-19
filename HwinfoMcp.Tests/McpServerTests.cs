@@ -17,6 +17,14 @@ public sealed class McpServerTests
 {
 	private static readonly string[] s_toolNames = ["get_cpu", "get_gpu", "get_memory", "get_readings", "hwinfo_status", "list_sensors"];
 
+	private static readonly string[] s_powerAndRelated = ["power", "related"];
+
+	private static readonly string[] s_temperatureAndPower = ["Temp", "Power"];
+
+	private static readonly string[] s_fans = ["fans"];
+
+	private static readonly string[] s_unknownSection = ["bogus"];
+
 	[Fact]
 	public async Task Handshake_ReportsServerInfoAndInstructions()
 	{
@@ -53,8 +61,7 @@ public sealed class McpServerTests
 			.ToDictionary(tool => tool.Name, tool => tool.ProtocolTool.InputSchema);
 
 		var types = tools["get_readings"].GetProperty("properties").GetProperty("types");
-		Assert.Contains("Temp", EnumValues(types.GetProperty("items")));
-		Assert.Contains("Power", EnumValues(types.GetProperty("items")));
+		Assert.Equal(["Temp", "Volt", "Fan", "Current", "Power", "Clock", "Usage", "Other"], EnumValues(types.GetProperty("items")));
 
 		var detail = tools["get_cpu"].GetProperty("properties").GetProperty("detail");
 		Assert.Equal(["summary", "full"], EnumValues(detail));
@@ -76,7 +83,7 @@ public sealed class McpServerTests
 	{
 		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
 
-		using var full = await server.CallAsync("get_cpu", new() { ["detail"] = "full", ["include"] = new[] { "power", "related" } });
+		using var full = await server.CallAsync("get_cpu", new() { ["detail"] = "full", ["include"] = s_powerAndRelated });
 		using var summary = await server.CallAsync("get_cpu");
 
 		Assert.Equal("full", full.RootElement.GetProperty("detail").GetString());
@@ -98,7 +105,7 @@ public sealed class McpServerTests
 		using var result = await server.CallAsync("get_readings", new()
 		{
 			["sensor"] = "dgpu",
-			["types"] = new[] { "Temp", "Power" },
+			["types"] = s_temperatureAndPower,
 			["includeStats"] = true,
 			["limit"] = 5,
 		});
@@ -128,7 +135,7 @@ public sealed class McpServerTests
 	{
 		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
 
-		using var withFans = await server.CallAsync("get_gpu", new() { ["include"] = new[] { "fans" } });
+		using var withFans = await server.CallAsync("get_gpu", new() { ["include"] = s_fans });
 		using var withDefaults = await server.CallAsync("get_gpu");
 
 		var gpu = withFans.RootElement.GetProperty("gpus")[0];
@@ -175,6 +182,72 @@ public sealed class McpServerTests
 		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
 		Assert.Contains("Shared Memory Support", text, StringComparison.Ordinal);
 		Assert.Contains("12 hours", text, StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData("list_sensors")]
+	[InlineData("get_readings")]
+	[InlineData("get_cpu")]
+	[InlineData("get_gpu")]
+	[InlineData("get_memory")]
+	public async Task DataTools_ReadFailed_ReturnAnErrorWithTheReason(string tool)
+	{
+		await using var server = await TestServer.StartAsync(SensorSnapshot.Failed("Reading HWiNFO's shared memory failed: Broken section."));
+
+		var result = await server.Client.CallToolAsync(tool, cancellationToken: TestContext.Current.CancellationToken);
+
+		Assert.True(result.IsError);
+		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
+		using var json = JsonDocument.Parse(text);
+		Assert.False(json.RootElement.GetProperty("available").GetBoolean());
+		Assert.Contains("Broken section.", json.RootElement.GetProperty("error").GetString(), StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task InvalidEnumValue_NamesTheAllowedValues()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+
+		var result = await server.Client.CallToolAsync(
+			"get_gpu",
+			new Dictionary<string, object?> { ["include"] = s_unknownSection },
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(result.IsError);
+		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
+		Assert.StartsWith("Invalid arguments for 'get_gpu'", text, StringComparison.Ordinal);
+		Assert.Contains("include: array of \"power\", \"voltages\", \"currents\", \"limits\", \"fans\", \"other\", \"all\"", text, StringComparison.Ordinal);
+		Assert.Contains("type: \"dgpu\", \"igpu\", \"all\"", text, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task InvalidNumber_NamesTheExpectedType()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+
+		var result = await server.Client.CallToolAsync(
+			"get_readings",
+			new Dictionary<string, object?> { ["limit"] = "many" },
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(result.IsError);
+		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
+		Assert.Contains("limit: integer", text, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public async Task ValueWithoutFiniteNumber_IsWrittenAsNull()
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime).Group("Sensor").Power("Broken Power", double.NaN).Build();
+		await using var server = await TestServer.StartAsync(snapshot);
+
+		using var result = await server.CallAsync("get_readings");
+
+		var reading = result.RootElement.GetProperty("groups")[0].GetProperty("readings")[0];
+		Assert.Equal(JsonValueKind.Null, reading.GetProperty("value").ValueKind);
+		Assert.False(reading.TryGetProperty("min", out _));
 	}
 
 	[Fact]

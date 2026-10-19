@@ -36,6 +36,8 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageOutputPath>$(MSBuildProjectDirectory)\..\artifacts\nupkg\</PackageOutputPath>
+		<!-- Also run on .NET runtimes newer than 10 when 10 isn't installed -->
+		<RollForward>Major</RollForward>
 	</PropertyGroup>
 
 	<ItemGroup>

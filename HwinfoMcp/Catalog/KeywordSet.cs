@@ -15,13 +15,9 @@ public sealed class KeywordSet
 	/// <param name="keywords">The keywords, matched literally.</param>
 	public KeywordSet(params string[] keywords)
 	{
-		Keywords = keywords;
 		var alternatives = string.Join('|', keywords.Select(Regex.Escape));
 		_regex = new Regex($@"\b(?:{alternatives})", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 	}
-
-	/// <summary>The keywords of this set.</summary>
-	public IReadOnlyList<string> Keywords { get; }
 
 	/// <summary>Returns whether any keyword occurs in <paramref name="text"/>.</summary>
 	public bool IsMatch(string? text)

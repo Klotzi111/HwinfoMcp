@@ -6,8 +6,8 @@ clocks, limits and throttling of the CPU and GPU, the memory controller (UCLK, F
 controller load), memory timings and DIMM sensors, plus everything else HWiNFO reports (drives, mainboard, fans,
 network, PresentMon framerates, ...).
 
-The server is called `hwinfo-mcp-dotnet` and runs over stdio. It ships as a single Native AOT `HwinfoMcp.exe`
-that needs no .NET installation, and as a .NET global tool with the command `hwinfo-mcp-dotnet`.
+The server is called `hwinfo-mcp-dotnet` and runs over stdio. It ships as a single Native AOT executable for x64
+and ARM64 that needs no .NET installation, and as a .NET global tool with the command `hwinfo-mcp-dotnet`.
 
 > **Unofficial.** This project is not affiliated with, endorsed by or supported by HWiNFO or REALiX.
 > HWiNFO is a product of Martin Malík - REALiX.
@@ -25,7 +25,8 @@ compact JSON.
 
 ## Requirements
 
-- Windows 10 or 11, x64.
+- Windows 10 or 11, x64 or ARM64 (so far tested on Windows 10 x64, see
+  [Tested with](https://github.com/Klotzi111/HwinfoMcp#tested-with)).
 - [HWiNFO](https://www.hwinfo.com/) (free or Pro) running with **Shared Memory Support** enabled:
   HWiNFO → Settings → "Shared Memory Support". Its sensor monitoring has to run (sensors window or
   sensors-only mode, minimized to the tray is fine).
@@ -33,22 +34,39 @@ compact JSON.
   the option off, so the values freeze or disappear. Turn it back on (which starts another 12 hours) or restart
   HWiNFO. `hwinfo_status` and every other tool warn when the data is older than 60 seconds.
 
+## Tested with
+
+- **Live:** Windows 10 Pro 22H2 (build 19045) with an AMD Ryzen 7 7800X3D and its Radeon iGPU, an NVIDIA
+  GeForce RTX 4080 and DDR5 memory, HWiNFO set to German. All tools were used from Claude Code, running the
+  server as global tool and as framework-dependent single-file executable.
+- **Recorded data in the tests:** a real shared memory dump of an AMD Ryzen 9 7900X with a Radeon RX 7800 XT and
+  the CPU's Radeon 610M, a recording of the 7800X3D system above, and a hand-made Intel Core i7-13700K / NVIDIA
+  GeForce RTX 4070 Ti data set modeled on HWiNFO's naming.
+- **Not tested yet:** Windows 11, real Intel CPUs and GPUs, and systems with several CPUs or discrete GPUs.
+  Recordings of such systems are welcome, see
+  [below](https://github.com/Klotzi111/HwinfoMcp#a-value-ends-up-in-the-wrong-place).
+
 ## Installation
 
-Either way, the [Releases](../../releases) page has what you need.
+Either way, the [Releases](https://github.com/Klotzi111/HwinfoMcp/releases) page has what you need.
 
-**As .NET global tool** (needs the .NET 10 runtime): download `HwinfoMcp.<version>.nupkg` into a folder,
-e.g. `C:\Tools\packages`, and install it from there. The command `hwinfo-mcp-dotnet` is then on the `PATH`:
+**As .NET global tool** (installing needs the .NET 10 SDK; running it then needs only the .NET runtime, version 10
+or later): download `HwinfoMcp.<version>.nupkg` into a folder, e.g. `C:\Tools\packages`, and install it from there.
+The command `hwinfo-mcp-dotnet` is then on the `PATH`:
 
 ```powershell
 dotnet tool install -g HwinfoMcp --add-source C:\Tools\packages
 ```
 
-**As standalone executable** (no .NET needed): download `HwinfoMcp.exe` (a `.sha256` checksum is attached)
-and put it in a permanent location, e.g. `C:\Tools\HwinfoMcp\HwinfoMcp.exe`. Use that path instead of
-`hwinfo-mcp-dotnet` below.
+For a pre-release such as `1.0.0-beta.1`, add `--version 1.0.0-beta.1`.
 
-To run your own build, see [Building from source](#building-from-source).
+**As standalone executable** (no .NET needed): download `HwinfoMcp-win-x64.exe`, or `HwinfoMcp-win-arm64.exe`
+for Windows on ARM, and save it in a permanent location, e.g. as `C:\Tools\HwinfoMcp\HwinfoMcp.exe`. Use that
+path instead of `hwinfo-mcp-dotnet` below. The release's `SHA256SUMS` lists the checksums of all files, and
+`gh attestation verify <file> --repo Klotzi111/HwinfoMcp` checks that a file was built by this repository's
+GitHub Actions workflow.
+
+To run your own build, see [Building from source](https://github.com/Klotzi111/HwinfoMcp#building-from-source).
 
 ### Claude Desktop
 
@@ -81,10 +99,13 @@ Check the connection with `claude mcp list` or `/mcp` inside Claude Code.
 | Argument | Effect |
 |----------|--------|
 | `--user-labels` | Report sensor groups and readings by the names HWiNFO displays (translated, or renamed by you) instead of HWiNFO's original English names. |
-| `--dump <file.json> [description]` | Don't start the server: record the current sensor data to a JSON file, see [below](#a-value-ends-up-in-the-wrong-place). |
+| `--dump <file.json> [description]` | Don't start the server: record the current sensor data to a JSON file, see [below](https://github.com/Klotzi111/HwinfoMcp#a-value-ends-up-in-the-wrong-place). |
+| `--version` | Print the version and exit. |
+| `--help` | Print the usage and exit. |
 
-In Claude Desktop, pass arguments with `"args": ["--user-labels"]`; in Claude Code, append them after the
-path.
+Commands like `--dump` must be the first argument; all switches are case-insensitive. In Claude Desktop, pass
+arguments with `"args": ["--user-labels"]`; in Claude Code, append them after the command:
+`claude mcp add --scope user hwinfo -- hwinfo-mcp-dotnet --user-labels`.
 
 By default the tools report HWiNFO's original English names, whatever language HWiNFO is set to: they stay
 the same across HWiNFO versions and languages, and HWiNFO's translations aren't always unambiguous (the German
@@ -154,7 +175,8 @@ doesn't rely on exact names:
   `memory clock`, `uclk`, `fclk`, `bandwidth` and `dram` for the memory controller, `throttl`, `prochot` and
   `performance limit` for throttling.
 
-All patterns and keywords live in [`SensorPatterns.cs`](HwinfoMcp/Catalog/SensorPatterns.cs). When in doubt
+All patterns and keywords live in
+[`SensorPatterns.cs`](https://github.com/Klotzi111/HwinfoMcp/blob/main/HwinfoMcp/Catalog/SensorPatterns.cs). When in doubt
 they include a value too many rather than leave out an important one.
 
 ### A value ends up in the wrong place?
@@ -167,7 +189,7 @@ HwinfoMcp.exe --dump my-system.json "Ryzen 7 9800X3D + RTX 5080"
 
 This writes all sensor groups and readings to a JSON file (logs go to stderr). Review it before sharing:
 sensor names can contain serial numbers, e.g. of drives. The tests replay such files, see
-[`HwinfoMcp.Tests/TestData`](HwinfoMcp.Tests/TestData).
+[`HwinfoMcp.Tests/TestData`](https://github.com/Klotzi111/HwinfoMcp/tree/main/HwinfoMcp.Tests/TestData).
 
 ## Building from source
 
@@ -178,10 +200,20 @@ dotnet build
 dotnet test
 ```
 
+The code style lives in `.editorconfig` and is part of the build. For files the build doesn't check, e.g. after a
+tool wrote them with other line endings,
+[`tools/normalize.py`](https://github.com/Klotzi111/HwinfoMcp/blob/main/tools/normalize.py) applies its encodings,
+line endings and final newlines to the files you name (`--check` only reports):
+
+```powershell
+python -I tools/normalize.py --check $(git ls-files)
+```
+
 ### Local install as global tool
 
-[`install-local.ps1`](install-local.ps1) packs the current build and (re)installs it as global tool, so MCP
-clients configured with the command `hwinfo-mcp-dotnet` run it:
+[`install-local.ps1`](https://github.com/Klotzi111/HwinfoMcp/blob/main/install-local.ps1) packs the current
+build and (re)installs it as global tool, so MCP clients configured with the command `hwinfo-mcp-dotnet` run it.
+It needs PowerShell 7.2 or later (`pwsh`), not Windows PowerShell:
 
 ```powershell
 ./install-local.ps1
@@ -193,14 +225,15 @@ run otherwise. Uninstall with `dotnet tool uninstall -g HwinfoMcp`.
 
 ### Executables
 
-Publish the single-file Native AOT executable to `artifacts/publish/win-x64/HwinfoMcp.exe`:
+Publish the single-file Native AOT executable to `artifacts/publish/win-x64/HwinfoMcp.exe` (or, with the
+`win-arm64` profile, to `artifacts/publish/win-arm64/HwinfoMcp.exe` for Windows on ARM):
 
 ```powershell
 dotnet publish HwinfoMcp/HwinfoMcp.csproj -p:PublishProfile=win-x64
 ```
 
 Native AOT needs the MSVC linker, i.e. Visual Studio's "Desktop development with C++" workload or the Visual
-Studio Build Tools; a MinGW/MSYS2 toolchain doesn't work. Without it, the `win-x64-singlefile` profile builds
+Studio Build Tools (for ARM64 also their "C++ ARM64 build tools"); a MinGW/MSYS2 toolchain doesn't work. Without it, the `win-x64-singlefile` profile builds
 a framework-dependent single-file executable instead, which needs the .NET 10 runtime:
 
 ```powershell
@@ -211,10 +244,21 @@ The project targets `net10.0` rather than `net10.0-windows` because .NET tools c
 is declared Windows-only through `[SupportedOSPlatform("windows")]`, and the AOT and trim analyzers run on
 every build, so it stays Native AOT compatible.
 
-GitHub Actions builds and tests every push. Pushing a tag like `v1.2.3` publishes a release with
-`HwinfoMcp.exe` and the tool package `HwinfoMcp.<version>.nupkg`.
+GitHub Actions builds and tests every push to `main` and every pull request. It also builds the Native AOT
+executables for x64 and ARM64, each on a runner of its architecture, and runs the stdio tests against them
+(`HwinfoMcp.Tests/StdioServerTests.cs` tests the executable the `HWINFOMCP_EXE` environment variable points to).
+
+To release, set `<VersionPrefix>` in `HwinfoMcp/HwinfoMcp.csproj` to the new version and push a tag like `v1.2.3`;
+the workflow refuses a tag that doesn't match. It publishes a release with `HwinfoMcp-win-x64.exe`,
+`HwinfoMcp-win-arm64.exe`, the tool package `HwinfoMcp.<version>.nupkg` and `SHA256SUMS`, with build provenance
+attestations for the executables and the package. A tag like `v1.2.3-beta.1` publishes a pre-release.
 
 ## Credits
+
+Many thanks to Manfred Graf ([Seraksab](https://github.com/Seraksab)) for
+[Hwinfo.SharedMemory.Net](https://github.com/Seraksab/Hwinfo.SharedMemory.Net). It does all the heavy lifting of
+reading HWiNFO's shared memory reliably, and its real-world snapshot `hwinfo-sm2-snapshot.bin` is the backbone
+of this project's tests.
 
 - [Hwinfo.SharedMemory.Net](https://github.com/Seraksab/Hwinfo.SharedMemory.Net) (MIT) reads HWiNFO's shared
   memory. The test data `hwinfo-sm2-snapshot.bin` is taken from its repository.
@@ -222,4 +266,4 @@ GitHub Actions builds and tests every push. Pushing a tag like `v1.2.3` publishe
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/Klotzi111/HwinfoMcp/blob/main/LICENSE)

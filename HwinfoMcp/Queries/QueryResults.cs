@@ -1,9 +1,62 @@
 ﻿using System.Text.Json.Serialization;
+using Hwinfo.SharedMemory;
 
 namespace HwinfoMcp.Queries;
 
 // The shapes of the tools' JSON answers. Null members are left out of the JSON, so optional parts cost
 // nothing when they are empty.
+
+/// <summary>
+/// The measurement types get_readings filters by. Its own enum rather than <see cref="SensorType"/>, so the
+/// tool's schema doesn't offer HWiNFO's <see cref="SensorType.None"/> and doesn't change with the reader library.
+/// </summary>
+public enum MeasurementType
+{
+	/// <summary>Temperatures.</summary>
+	Temp,
+
+	/// <summary>Voltages.</summary>
+	Volt,
+
+	/// <summary>Fan and pump speeds.</summary>
+	Fan,
+
+	/// <summary>Currents.</summary>
+	Current,
+
+	/// <summary>Power draw.</summary>
+	Power,
+
+	/// <summary>Clocks.</summary>
+	Clock,
+
+	/// <summary>Utilization and load.</summary>
+	Usage,
+
+	/// <summary>Everything else, e.g. yes/no flags, timings, framerates.</summary>
+	Other,
+}
+
+/// <summary>Maps <see cref="MeasurementType"/> to the reader's <see cref="SensorType"/>.</summary>
+public static class MeasurementTypes
+{
+	/// <summary>The <see cref="SensorType"/> of a measurement type.</summary>
+	public static SensorType ToSensorType(this MeasurementType type)
+	{
+		return type switch
+		{
+			MeasurementType.Temp => SensorType.Temp,
+			MeasurementType.Volt => SensorType.Volt,
+			MeasurementType.Fan => SensorType.Fan,
+			MeasurementType.Current => SensorType.Current,
+			MeasurementType.Power => SensorType.Power,
+			MeasurementType.Clock => SensorType.Clock,
+			MeasurementType.Usage => SensorType.Usage,
+			MeasurementType.Other => SensorType.Other,
+			_ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown measurement type."),
+		};
+	}
+}
 
 /// <summary>How much get_cpu reports.</summary>
 public enum CpuDetail
@@ -104,8 +157,11 @@ public enum CpuSection
 }
 
 /// <summary>One value as the tools report it.</summary>
-/// <param name="Label">The label as displayed in HWiNFO.</param>
-/// <param name="Value">The current value, rounded to two decimals. Null if HWiNFO reports no finite number.</param>
+/// <param name="Label">The label: HWiNFO's original one, or the one it displays with --user-labels.</param>
+/// <param name="Value">
+/// The current value, rounded to two decimals. Null if HWiNFO reports no finite number; unlike the other members
+/// written as null rather than left out, so every reading has a value.
+/// </param>
 /// <param name="Unit">The unit, e.g. "°C". Null if there is none.</param>
 /// <param name="Min">The minimum since HWiNFO started monitoring, on request only.</param>
 /// <param name="Max">The maximum since HWiNFO started monitoring, on request only.</param>
@@ -116,7 +172,7 @@ public enum CpuSection
 /// </param>
 public sealed record ReadingValue(
 	string Label,
-	double? Value,
+	[property: JsonIgnore(Condition = JsonIgnoreCondition.Never)] double? Value,
 	string? Unit,
 	double? Min = null,
 	double? Max = null,
@@ -146,7 +202,7 @@ public sealed record SensorListResult(
 	IReadOnlyList<SensorGroupInfo> Groups);
 
 /// <summary>One sensor group in the answer of list_sensors.</summary>
-/// <param name="Name">The group name as displayed in HWiNFO.</param>
+/// <param name="Name">The group name: HWiNFO's original one, or the one it displays with --user-labels.</param>
 /// <param name="Category">cpu, dgpu, igpu, memory, dimm, system or other.</param>
 /// <param name="Readings">The number of readings.</param>
 /// <param name="Types">The number of readings per measurement type.</param>

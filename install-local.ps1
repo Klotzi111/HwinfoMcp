@@ -1,4 +1,5 @@
 ﻿#!/usr/bin/env pwsh
+#Requires -Version 7.2
 # Packs the local build as dotnet tool and (re)installs it globally as 'hwinfo-mcp-dotnet'.
 #
 # The base version lives in HwinfoMcp/HwinfoMcp.csproj (<VersionPrefix>). This script appends a
@@ -6,7 +7,9 @@
 # from released packages. The timestamp makes every build a new version: NuGet caches packages by
 # version, so reinstalling a rebuilt package under the same version would install the cached old build.
 #
-# Requires the .NET 10 SDK. MCP clients then start the server with the command 'hwinfo-mcp-dotnet'.
+# Requires PowerShell 7.2 or later (pwsh): Windows PowerShell 5.1 aborts on the stderr output of
+# 'dotnet tool uninstall' when the tool isn't installed yet. Also requires the .NET 10 SDK, which
+# installing a dotnet tool needs anyway. MCP clients then start the server with the command 'hwinfo-mcp-dotnet'.
 
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
@@ -15,9 +18,10 @@ $command = 'hwinfo-mcp-dotnet'
 $project = Join-Path $root 'HwinfoMcp\HwinfoMcp.csproj'
 $nupkgDir = Join-Path $root 'artifacts\nupkg'
 
-$prefix = (Select-Xml -Path $project -XPath '/Project/PropertyGroup/VersionPrefix').Node.InnerText.Trim()
-if ([string]::IsNullOrWhiteSpace($prefix)) {
-	Write-Error "Could not read <VersionPrefix> from $project."
+# Asks MSBuild, so the version is found wherever it is defined (project, Directory.Build.props, ...)
+$prefix = (dotnet msbuild $project -getProperty:VersionPrefix | Out-String).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($prefix)) {
+	Write-Error "Could not read VersionPrefix of $project."
 	exit 1
 }
 $suffix = 'local.' + (Get-Date -Format 'yyyyMMddHHmmss')

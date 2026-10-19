@@ -142,11 +142,11 @@ public static partial class SensorPatterns
 	public static IReadOnlyList<Regex> MainGpuPower { get; } =
 	[
 		// NVIDIA and Intel: the whole card
-		new(@"^GPU Power$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		GpuPowerLabel,
 		// AMD: "Total Board Power (TBP)", else the chip's "Total Graphics Power (TGP)" or "GPU ASIC Power"
-		new(@"^(?:Total|GPU) Board Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
-		new(@"^Total Graphics Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
-		new(@"^GPU (?:ASIC|Package|Total|Card) Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		BoardPowerLabel,
+		TotalGraphicsPowerLabel,
+		GpuChipPowerLabel,
 	];
 
 	/// <summary>
@@ -156,11 +156,32 @@ public static partial class SensorPatterns
 	public static IReadOnlyList<Regex> MainCpuPower { get; } =
 	[
 		// AMD and Intel
-		new(@"^CPU Package Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
-		new(@"^(?:CPU )?Package Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		CpuPackagePowerLabel,
+		PackagePowerLabel,
 		// AMD's power tracked against the PPT limit
-		new(@"^CPU PPT$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		CpuPptLabel,
 	];
+
+	[GeneratedRegex(@"^GPU Power$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex GpuPowerLabel { get; }
+
+	[GeneratedRegex(@"^(?:Total|GPU) Board Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex BoardPowerLabel { get; }
+
+	[GeneratedRegex(@"^Total Graphics Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex TotalGraphicsPowerLabel { get; }
+
+	[GeneratedRegex(@"^GPU (?:ASIC|Package|Total|Card) Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex GpuChipPowerLabel { get; }
+
+	[GeneratedRegex(@"^CPU Package Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex CpuPackagePowerLabel { get; }
+
+	[GeneratedRegex(@"^(?:CPU )?Package Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex PackagePowerLabel { get; }
+
+	[GeneratedRegex(@"^CPU PPT$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+	private static partial Regex CpuPptLabel { get; }
 
 	#endregion
 }
