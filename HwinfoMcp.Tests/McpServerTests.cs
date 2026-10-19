@@ -59,26 +59,35 @@ public sealed class McpServerTests
 		var detail = tools["get_cpu"].GetProperty("properties").GetProperty("detail");
 		Assert.Equal(["summary", "full"], EnumValues(detail));
 		Assert.Equal("summary", detail.GetProperty("default").GetString());
+		var cpuInclude = tools["get_cpu"].GetProperty("properties").GetProperty("include").GetProperty("items");
+		Assert.Equal(["power", "voltages", "currents", "limits", "other", "related", "all"], EnumValues(cpuInclude));
 
 		var gpuType = tools["get_gpu"].GetProperty("properties").GetProperty("type");
 		Assert.Equal(["dgpu", "igpu", "all"], EnumValues(gpuType));
 		Assert.Equal("dgpu", gpuType.GetProperty("default").GetString());
+		var gpuInclude = tools["get_gpu"].GetProperty("properties").GetProperty("include").GetProperty("items");
+		Assert.Equal(["power", "voltages", "currents", "limits", "fans", "other", "all"], EnumValues(gpuInclude));
 
 		Assert.Equal(100, tools["get_readings"].GetProperty("properties").GetProperty("limit").GetProperty("default").GetInt32());
 	}
 
 	[Fact]
-	public async Task GetCpu_BindsTheDetailParameter()
+	public async Task GetCpu_BindsTheDetailAndIncludeParameters()
 	{
 		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
 
-		using var full = await server.CallAsync("get_cpu", new() { ["detail"] = "full" });
+		using var full = await server.CallAsync("get_cpu", new() { ["detail"] = "full", ["include"] = new[] { "power", "related" } });
 		using var summary = await server.CallAsync("get_cpu");
 
 		Assert.Equal("full", full.RootElement.GetProperty("detail").GetString());
 		Assert.Contains(Labels(full.RootElement.GetProperty("cpus")[0].GetProperty("power")), label => label == "Core 0 Power");
+		Assert.True(full.RootElement.TryGetProperty("related", out _));
+		Assert.False(full.RootElement.TryGetProperty("omitted", out _));
+
 		Assert.Equal("summary", summary.RootElement.GetProperty("detail").GetString());
-		Assert.DoesNotContain(Labels(summary.RootElement.GetProperty("cpus")[0].GetProperty("power")), label => label == "Core 0 Power");
+		Assert.Equal(["CPU Package Power"], Labels(summary.RootElement.GetProperty("cpus")[0].GetProperty("power")));
+		Assert.False(summary.RootElement.TryGetProperty("related", out _));
+		Assert.Equal(["related"], summary.RootElement.GetProperty("omitted").EnumerateArray().Select(value => value.GetString()));
 	}
 
 	[Fact]
@@ -112,6 +121,21 @@ public sealed class McpServerTests
 		using var result = await server.CallAsync("get_gpu", new() { ["type"] = "igpu" });
 
 		Assert.Equal("iGPU [#1]: AMD Radeon 610M", result.RootElement.GetProperty("gpus")[0].GetProperty("name").GetString());
+	}
+
+	[Fact]
+	public async Task GetGpu_BindsTheIncludeParameter()
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+
+		using var withFans = await server.CallAsync("get_gpu", new() { ["include"] = new[] { "fans" } });
+		using var withDefaults = await server.CallAsync("get_gpu");
+
+		var gpu = withFans.RootElement.GetProperty("gpus")[0];
+		Assert.True(gpu.TryGetProperty("fans", out _));
+		Assert.False(gpu.TryGetProperty("limits", out _));
+		Assert.Equal(["power", "limits", "voltages", "currents", "other"], gpu.GetProperty("omitted").EnumerateArray().Select(value => value.GetString()));
+		Assert.False(withDefaults.RootElement.GetProperty("gpus")[0].TryGetProperty("fans", out _));
 	}
 
 	[Theory]

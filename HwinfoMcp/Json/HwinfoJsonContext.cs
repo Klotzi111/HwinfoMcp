@@ -26,6 +26,8 @@ namespace HwinfoMcp.Json;
 [JsonSerializable(typeof(SensorType[]))]
 [JsonSerializable(typeof(CpuDetail))]
 [JsonSerializable(typeof(GpuSelection))]
+[JsonSerializable(typeof(GpuSection[]))]
+[JsonSerializable(typeof(CpuSection[]))]
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(int))]

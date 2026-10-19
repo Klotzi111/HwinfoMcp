@@ -9,7 +9,7 @@ public sealed class CpuQueryTests
 	private static readonly QueryContext s_fresh = QueryContext.From(TestSnapshots.FreshClock);
 
 	[Fact]
-	public void Amd_Summary_ReportsTotalsWithoutPerCoreValuesAndCStates()
+	public void Amd_Default_ReportsOnlyTheImportantSections()
 	{
 		var result = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false);
 
@@ -19,22 +19,12 @@ public sealed class CpuQueryTests
 		Assert.Equal("CPU [#0]: AMD Ryzen 9 7900X", cpu.Name);
 		Assert.Equal(["CPU [#0]: AMD Ryzen 9 7900X", "CPU [#0]: AMD Ryzen 9 7900X: Enhanced"], cpu.SensorGroups);
 
-		var all = AllValues(cpu).ToList();
-		Assert.DoesNotContain(all, value => value.Label.Contains("Residency", StringComparison.Ordinal));
-		Assert.DoesNotContain(all, value => SensorPatterns.PerCoreLabel.IsMatch(value.Label));
-		Assert.All(all, value => Assert.Null(value.Min));
-	}
-
-	[Fact]
-	public void Amd_Summary_SortsPowerTemperaturesUsageAndLimits()
-	{
-		var cpu = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false).Cpus[0];
-
-		var packagePower = Find(cpu.Power, "CPU Package Power");
+		// Only the main power
+		var packagePower = Assert.Single(cpu.Power!);
+		Assert.Equal("CPU Package Power", packagePower.Label);
 		Assert.Equal(61.65, packagePower.Value);
 		Assert.Equal("W", packagePower.Unit);
 		Assert.Equal("Enhanced", packagePower.Group);
-		Assert.Equal(58.96, Find(cpu.Power, "CPU PPT").Value);
 
 		Assert.Equal(53.13, Find(cpu.Temperatures, "CPU (Tctl/Tdie)").Value);
 		Assert.Equal("°C", Find(cpu.Temperatures, "CPU (Tctl/Tdie)").Unit);
@@ -44,27 +34,46 @@ public sealed class CpuQueryTests
 		Assert.Equal(1.73, totalUsage.Value);
 		Assert.Null(totalUsage.Group);
 
-		Assert.Equal(41.52, Find(cpu.Limits, "CPU PPT Limit").Value);
-		Assert.Equal(60.28, Find(cpu.Limits, "Thermal Limit").Value);
-		Assert.Equal(5354.12, Find(cpu.Limits, "Frequency Limit - Global").Value);
-
+		Assert.Equal(91.14, Find(cpu.Clocks, "Average Effective Clock").Value);
 		Assert.Equal(0, Find(cpu.Throttling, "Thermal Throttling (HTC)").Value);
 		Assert.Equal("Yes/No", Find(cpu.Throttling, "Thermal Throttling (PROCHOT EXT)").Unit);
 
-		Assert.Equal(13.54, Find(cpu.Currents, "CPU TDC").Value);
+		// The rarely needed sections are left out, but named
+		Assert.Null(cpu.Limits);
+		Assert.Null(cpu.Voltages);
+		Assert.Null(cpu.Currents);
+		Assert.Null(cpu.Other);
+		Assert.Equal(["power", "limits", "voltages", "currents", "other"], cpu.Omitted);
+		Assert.Null(result.Related);
+		Assert.Equal(["related"], result.Omitted);
 	}
 
 	[Fact]
-	public void Amd_Summary_ReportsTheMemoryController()
+	public void Amd_Summary_LeavesOutPerCoreValuesAndCStatesInEverySection()
 	{
-		var result = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false);
+		var result = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false, [CpuSection.All]);
+
+		var all = AllValues(result.Cpus[0]).ToList();
+		Assert.DoesNotContain(all, value => value.Label.Contains("Residency", StringComparison.Ordinal));
+		Assert.DoesNotContain(all, value => SensorPatterns.PerCoreLabel.IsMatch(value.Label));
+		Assert.All(all, value => Assert.Null(value.Min));
+	}
+
+	[Fact]
+	public void Amd_IncludeAll_ReportsPowerLimitsCurrentsAndRelated()
+	{
+		var result = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false, [CpuSection.All]);
 		var cpu = result.Cpus[0];
 
-		Assert.Equal(3100, Find(cpu.MemoryController, "Memory Controller Clock (UCLK)").Value);
-		Assert.Equal(2200, Find(cpu.MemoryController, "Infinity Fabric Clock (FCLK)").Value);
-		Assert.Equal(0.71, Find(cpu.MemoryController, "DRAM Read Bandwidth").Value);
-		Assert.Equal("GB/s", Find(cpu.MemoryController, "DRAM Write Bandwidth").Unit);
-		Assert.Null(cpu.Vram);
+		Assert.Equal(5, cpu.Power!.Count);
+		Assert.Equal(58.96, Find(cpu.Power, "CPU PPT").Value);
+		Assert.Equal(41.52, Find(cpu.Limits, "CPU PPT Limit").Value);
+		Assert.Equal(60.28, Find(cpu.Limits, "Thermal Limit").Value);
+		Assert.Equal(5354.12, Find(cpu.Limits, "Frequency Limit - Global").Value);
+		Assert.Equal(13.54, Find(cpu.Currents, "CPU TDC").Value);
+		Assert.Equal(1.22, Find(cpu.Voltages, "CPU VDDCR_VDD Voltage (SVI3 TFN)").Value);
+		Assert.Equal(0.34, Find(cpu.Other, "Average Active Core Count").Value);
+		Assert.Null(cpu.Omitted);
 
 		// The memory clock comes from the memory timings group, the CPU fan from the mainboard
 		var related = Assert.IsAssignableFrom<IReadOnlyList<ReadingValue>>(result.Related);
@@ -74,18 +83,73 @@ public sealed class CpuQueryTests
 		Assert.Contains(related, value => value is { Label: "CPU", Unit: "RPM", Value: 824 });
 		Assert.Contains(related, value => value is { Label: "TSI0 (CPU)", Unit: "°C" });
 		Assert.DoesNotContain(related, value => value.Label == "Motherboard");
+		Assert.Null(result.Omitted);
+	}
+
+	[Fact]
+	public void Include_AddsTheRequestedSections()
+	{
+		var result = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false, [CpuSection.Limits, CpuSection.Related]);
+		var cpu = result.Cpus[0];
+
+		Assert.Equal(41.52, Find(cpu.Limits, "CPU PPT Limit").Value);
+		Assert.NotNull(result.Related);
+		Assert.Null(result.Omitted);
+		Assert.Single(cpu.Power!);
+		Assert.Equal(["power", "voltages", "currents", "other"], cpu.Omitted);
+	}
+
+	[Fact]
+	public void Amd_Default_ReportsTheMemoryController()
+	{
+		var cpu = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Summary, includeStats: false).Cpus[0];
+
+		Assert.Equal(3100, Find(cpu.MemoryController, "Memory Controller Clock (UCLK)").Value);
+		Assert.Equal(2200, Find(cpu.MemoryController, "Infinity Fabric Clock (FCLK)").Value);
+		Assert.Equal(0.71, Find(cpu.MemoryController, "DRAM Read Bandwidth").Value);
+		Assert.Equal("GB/s", Find(cpu.MemoryController, "DRAM Write Bandwidth").Unit);
+		Assert.Null(cpu.Vram);
 	}
 
 	[Fact]
 	public void Amd_Full_AddsPerCoreValuesButStillNoCStates()
 	{
-		var cpu = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Full, includeStats: false).Cpus[0];
+		var cpu = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Full, includeStats: false, [CpuSection.Power, CpuSection.Other]).Cpus[0];
 
 		Assert.Equal(0.95, Find(cpu.Power, "Core 0 Power").Value);
 		Assert.Equal(8.87, Find(cpu.Usage, "Core 0 T0 Usage").Value);
 		Assert.Equal(39.3, Find(cpu.Temperatures, "Core0 (CCD1)").Value);
 		Assert.Equal(53.5, Find(cpu.Other, "Core 0 Ratio").Value);
 		Assert.DoesNotContain(AllValues(cpu), value => value.Label.Contains("Residency", StringComparison.Ordinal));
+	}
+
+	[Fact]
+	public void Amd_Full_StillReportsOnlyTheMainPowerByDefault()
+	{
+		var cpu = SensorQueries.GetCpu(TestSnapshots.Amd, s_fresh, CpuDetail.Full, includeStats: false).Cpus[0];
+
+		Assert.Equal("CPU Package Power", Assert.Single(cpu.Power!).Label);
+		Assert.Equal(8.87, Find(cpu.Usage, "Core 0 T0 Usage").Value);
+	}
+
+	[Theory]
+	[InlineData("CPU Core Power (SVI3 TFN)", "CPU Package Power", "CPU Package Power")]
+	[InlineData("IA Cores Power", "Package Power", "Package Power")]
+	[InlineData("CPU Core Power (SVI3 TFN)", "CPU PPT", "CPU PPT")]
+	// No known main power: the first one
+	[InlineData("Core 0 Power", "Core 1 Power", "Core 0 Power")]
+	public void MainPower_IsPickedByLabel(string first, string second, string expected)
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("CPU [#0]: Some CPU")
+			.Power(first, 10)
+			.Power(second, 20)
+			.Build();
+
+		var cpu = Assert.Single(SensorQueries.GetCpu(snapshot, s_fresh, CpuDetail.Full, includeStats: false).Cpus);
+
+		Assert.Equal(expected, Assert.Single(cpu.Power!).Label);
+		Assert.Equal(["power"], cpu.Omitted);
 	}
 
 	[Fact]
@@ -104,7 +168,7 @@ public sealed class CpuQueryTests
 	[Fact]
 	public void Intel_SortsDtsEnhancedAndLimitReasonsGroups()
 	{
-		var result = SensorQueries.GetCpu(TestSnapshots.IntelNvidia, s_fresh, CpuDetail.Summary, includeStats: false);
+		var result = SensorQueries.GetCpu(TestSnapshots.IntelNvidia, s_fresh, CpuDetail.Summary, includeStats: false, [CpuSection.All]);
 		var cpu = Assert.Single(result.Cpus);
 
 		Assert.Equal("CPU [#0]: Intel Core i7-13700K", cpu.Name);
@@ -133,9 +197,19 @@ public sealed class CpuQueryTests
 	}
 
 	[Fact]
+	public void Intel_Default_ReportsThePackagePowerAndTheThrottling()
+	{
+		var cpu = SensorQueries.GetCpu(TestSnapshots.IntelNvidia, s_fresh, CpuDetail.Summary, includeStats: false).Cpus[0];
+
+		Assert.Equal(225.3, Assert.Single(cpu.Power!).Value);
+		Assert.Equal(1, Find(cpu.Throttling, "Package/Ring Power Limit Exceeded").Value);
+		Assert.Null(cpu.Limits);
+	}
+
+	[Fact]
 	public void Intel_Full_IncludesHybridCores()
 	{
-		var cpu = SensorQueries.GetCpu(TestSnapshots.IntelNvidia, s_fresh, CpuDetail.Full, includeStats: false).Cpus[0];
+		var cpu = SensorQueries.GetCpu(TestSnapshots.IntelNvidia, s_fresh, CpuDetail.Full, includeStats: false, [CpuSection.Voltages]).Cpus[0];
 
 		Assert.Equal(1.3, Find(cpu.Voltages, "P-core 0 VID").Value);
 		Assert.Equal(100, Find(cpu.Usage, "E-core 16 T0 Usage").Value);

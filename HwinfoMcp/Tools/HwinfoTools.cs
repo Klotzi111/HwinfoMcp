@@ -69,19 +69,23 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 	/// <summary>get_cpu</summary>
 	[McpServerTool(Name = "get_cpu", Title = "CPU overview", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
 	[Description(
-		"Curated CPU overview: power, temperatures, usage, memory controller (UCLK, FCLK, DRAM bandwidth), "
-		+ "clocks, limits and their utilization, throttling indicators (1 = active), voltages and currents. "
-		+ "C-state residencies are left out. 'related' holds CPU readings of other groups such as the mainboard's "
-		+ "CPU temperature, CPU fan and memory clock. A reading's 'group' names its sensor sub group when it isn't "
-		+ "the CPU's main group.")]
+		"Curated CPU overview: main power ('CPU Package Power'), temperatures, usage, memory controller (UCLK, "
+		+ "FCLK, DRAM bandwidth), clocks and throttling indicators (1 = active). The other power readings, voltages, "
+		+ "currents (incl. TDC/EDC), limits and their utilization (PPT, TDC, EDC, thermal), other readings and "
+		+ "'related' CPU readings of other groups (mainboard CPU temperature and fan, Vcore, memory clock) are only "
+		+ "included on request (include); 'omitted' lists the sections that were shortened or left out. C-state "
+		+ "residencies are never included. A reading's 'group' names its sensor sub group when it isn't the CPU's "
+		+ "main group.")]
 	public CallToolResult GetCpu(
 		[Description("summary: totals and aggregates only (default). full: also per-core and per-thread values.")]
 		CpuDetail detail = CpuDetail.Summary,
+		[Description("Rarely needed sections to include too, e.g. [\"limits\", \"related\"], or [\"all\"]. \"power\" returns all power readings instead of only the main one. Omit for none.")]
+		CpuSection[]? include = null,
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
 		bool includeStats = false)
 	{
 		return Query(
-			(snapshot, context) => SensorQueries.GetCpu(snapshot, context, detail, includeStats),
+			(snapshot, context) => SensorQueries.GetCpu(snapshot, context, detail, includeStats, include),
 			HwinfoJson.Output.CpuResult
 		);
 	}
@@ -89,17 +93,21 @@ public sealed class HwinfoTools(ISensorSource source, TimeProvider timeProvider,
 	/// <summary>get_gpu</summary>
 	[McpServerTool(Name = "get_gpu", Title = "GPU overview", ReadOnly = true, Destructive = false, Idempotent = true, OpenWorld = false)]
 	[Description(
-		"Curated GPU overview: board and chip power, temperatures (incl. hotspot and memory junction), usage, "
-		+ "memory controller load and memory clock, VRAM usage, clocks, limits, throttling indicators "
-		+ "(1 = active), fans, voltages and currents.")]
+		"Curated GPU overview: main power (e.g. 'GPU Power' or AMD's board power), temperatures (incl. hotspot "
+		+ "and memory junction), usage, memory controller load and memory clock, VRAM usage, clocks and throttling "
+		+ "indicators (1 = active). The other power readings (chip, rails, connectors), voltages, currents, limits, "
+		+ "fans and other readings are only included on request (include); 'omitted' lists the sections that were "
+		+ "shortened or left out.")]
 	public CallToolResult GetGpu(
 		[Description("dgpu: discrete GPU(s) (default), igpu: integrated GPU(s), all: every GPU. Falls back to the other kind if there is none of the requested one.")]
 		GpuSelection type = GpuSelection.Dgpu,
+		[Description("Rarely needed sections to include too, e.g. [\"power\", \"limits\"], or [\"all\"]. \"power\" returns all power readings instead of only the main one. Omit for none.")]
+		GpuSection[]? include = null,
 		[Description("Also return min, max and average since HWiNFO started monitoring.")]
 		bool includeStats = false)
 	{
 		return Query(
-			(snapshot, context) => SensorQueries.GetGpu(snapshot, context, type, includeStats),
+			(snapshot, context) => SensorQueries.GetGpu(snapshot, context, type, includeStats, include),
 			HwinfoJson.Output.GpuResult
 		);
 	}

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using Hwinfo.SharedMemory;
 
 namespace HwinfoMcp.Catalog;
@@ -265,6 +266,31 @@ public static class SensorClassifier
 	{
 		var label = string.IsNullOrWhiteSpace(reading.LabelOrig) ? reading.LabelUser : reading.LabelOrig;
 		return SensorPatterns.PerCoreLabel.IsMatch(label);
+	}
+
+	/// <summary>
+	/// Picks the main power reading of a device from its power readings: the first reading matching the
+	/// earliest pattern, see <see cref="SensorPatterns.MainGpuPower"/> and <see cref="SensorPatterns.MainCpuPower"/>.
+	/// </summary>
+	/// <param name="powerReadings">The device's power readings in HWiNFO's order; must not be empty.</param>
+	/// <param name="patterns">The patterns of main power labels, most preferred first.</param>
+	/// <returns>The index of the main power reading, the first one if no pattern matches.</returns>
+	public static int FindMainPower(IReadOnlyList<SensorReading> powerReadings, IReadOnlyList<Regex> patterns)
+	{
+		foreach (var pattern in patterns)
+		{
+			for (var i = 0; i < powerReadings.Count; i++)
+			{
+				var reading = powerReadings[i];
+				var label = string.IsNullOrWhiteSpace(reading.LabelOrig) ? reading.LabelUser : reading.LabelOrig;
+				if (pattern.IsMatch(label.Trim()))
+				{
+					return i;
+				}
+			}
+		}
+
+		return 0;
 	}
 
 	/// <summary>Determines the section of a CPU or GPU overview a reading belongs to.</summary>

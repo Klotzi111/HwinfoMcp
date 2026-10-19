@@ -33,6 +33,76 @@ public enum GpuSelection
 	All,
 }
 
+/// <summary>
+/// The sections get_gpu leaves out unless they are asked for, as they are rarely needed. Of the power section
+/// it reports the main power reading.
+/// </summary>
+public enum GpuSection
+{
+	/// <summary>All power readings rather than only the main one.</summary>
+	[JsonStringEnumMemberName("power")]
+	Power,
+
+	/// <summary>Voltages.</summary>
+	[JsonStringEnumMemberName("voltages")]
+	Voltages,
+
+	/// <summary>Currents.</summary>
+	[JsonStringEnumMemberName("currents")]
+	Currents,
+
+	/// <summary>Limits and how much of them is used.</summary>
+	[JsonStringEnumMemberName("limits")]
+	Limits,
+
+	/// <summary>Fans.</summary>
+	[JsonStringEnumMemberName("fans")]
+	Fans,
+
+	/// <summary>Everything else, e.g. the PCIe link speed.</summary>
+	[JsonStringEnumMemberName("other")]
+	Other,
+
+	/// <summary>All of the above.</summary>
+	[JsonStringEnumMemberName("all")]
+	All,
+}
+
+/// <summary>
+/// The sections get_cpu leaves out unless they are asked for, as they are rarely needed. Of the power section
+/// it reports the main power reading.
+/// </summary>
+public enum CpuSection
+{
+	/// <summary>All power readings rather than only the main one.</summary>
+	[JsonStringEnumMemberName("power")]
+	Power,
+
+	/// <summary>Voltages.</summary>
+	[JsonStringEnumMemberName("voltages")]
+	Voltages,
+
+	/// <summary>Currents, including TDC and EDC.</summary>
+	[JsonStringEnumMemberName("currents")]
+	Currents,
+
+	/// <summary>Limits and how much of them is used, e.g. PPT, TDC, EDC and thermal limit.</summary>
+	[JsonStringEnumMemberName("limits")]
+	Limits,
+
+	/// <summary>Everything else, e.g. core ratios and the average active core count.</summary>
+	[JsonStringEnumMemberName("other")]
+	Other,
+
+	/// <summary>CPU readings of other sensor groups: mainboard CPU temperature and fan, Vcore, memory clock.</summary>
+	[JsonStringEnumMemberName("related")]
+	Related,
+
+	/// <summary>All of the above.</summary>
+	[JsonStringEnumMemberName("all")]
+	All,
+}
+
 /// <summary>One value as the tools report it.</summary>
 /// <param name="Label">The label as displayed in HWiNFO.</param>
 /// <param name="Value">The current value, rounded to two decimals. Null if HWiNFO reports no finite number.</param>
@@ -96,14 +166,18 @@ public sealed record ReadingsResult(
 public sealed record ReadingGroup(string Sensor, IReadOnlyList<ReadingValue> Readings);
 
 /// <summary>The answer of get_cpu.</summary>
-/// <param name="Related">CPU related readings from other groups, e.g. the mainboard's CPU temperature and fan.</param>
+/// <param name="Related">
+/// CPU related readings from other groups, e.g. the mainboard's CPU temperature and fan. On request only.
+/// </param>
+/// <param name="Omitted">"related" if there are related readings that weren't asked for.</param>
 public sealed record CpuResult(
 	string PollTime,
 	string? Warning,
 	string Detail,
 	string? Note,
 	IReadOnlyList<DeviceReadings> Cpus,
-	IReadOnlyList<ReadingValue>? Related);
+	IReadOnlyList<ReadingValue>? Related,
+	IReadOnlyList<string>? Omitted = null);
 
 /// <summary>The answer of get_gpu.</summary>
 public sealed record GpuResult(
@@ -179,4 +253,9 @@ public sealed record DeviceReadings
 
 	/// <summary>Everything else.</summary>
 	public IReadOnlyList<ReadingValue>? Other { get; init; }
+
+	/// <summary>
+	/// Sections with readings that were left out or, like "power", shortened because they weren't asked for.
+	/// </summary>
+	public IReadOnlyList<string>? Omitted { get; init; }
 }

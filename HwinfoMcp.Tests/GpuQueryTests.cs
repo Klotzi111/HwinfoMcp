@@ -19,10 +19,10 @@ public sealed class GpuQueryTests
 		Assert.Equal("dGPU [#0]: AMD Radeon RX 7800 XT: ASUS TUF RX 7800 XT GAMING OC", gpu.Name);
 		Assert.Equal("dgpu", gpu.Kind);
 
-		// Board and chip power
-		Assert.Equal(50.87, Find(gpu.Power, "Total Board Power (TBP)").Value);
-		Assert.Equal(29.48, Find(gpu.Power, "Total Graphics Power (TGP)").Value);
-		Assert.Equal(0.86, Find(gpu.Power, "GPU Core Power (VDDCR_GFX)").Value);
+		// Only the main power, the board power
+		var power = Assert.Single(gpu.Power!);
+		Assert.Equal("Total Board Power (TBP)", power.Label);
+		Assert.Equal(50.87, power.Value);
 
 		// Temperatures including hotspot and memory junction
 		Assert.Equal(41, Find(gpu.Temperatures, "GPU Temperature").Value);
@@ -38,14 +38,113 @@ public sealed class GpuQueryTests
 		Assert.Equal(7624, Find(gpu.Vram, "GPU Memory Usage").Value);
 		Assert.Equal("MB", Find(gpu.Vram, "GPU D3D Memory Dedicated").Unit);
 
+		Assert.All(AllValues(gpu), value => Assert.Null(value.Group));
+
+		// The rarely needed sections are left out, but named
+		Assert.Null(gpu.Voltages);
+		Assert.Null(gpu.Currents);
+		Assert.Null(gpu.Limits);
+		Assert.Null(gpu.Fans);
+		Assert.Null(gpu.Other);
+		Assert.Equal(["power", "limits", "fans", "voltages", "currents", "other"], gpu.Omitted);
+	}
+
+	[Fact]
+	public void IncludePower_ReportsAllPowerReadings()
+	{
+		var result = SensorQueries.GetGpu(TestSnapshots.Amd, s_fresh, GpuSelection.Dgpu, includeStats: false, [GpuSection.Power]);
+		var gpu = Assert.Single(result.Gpus);
+
+		Assert.Equal(9, gpu.Power!.Count);
+		Assert.Equal(50.87, Find(gpu.Power, "Total Board Power (TBP)").Value);
+		Assert.Equal(29.48, Find(gpu.Power, "Total Graphics Power (TGP)").Value);
+		Assert.Equal(0.86, Find(gpu.Power, "GPU Core Power (VDDCR_GFX)").Value);
+		Assert.Equal(["limits", "fans", "voltages", "currents", "other"], gpu.Omitted);
+	}
+
+	[Theory]
+	// NVIDIA and Intel: the card's power, wherever HWiNFO lists it
+	[InlineData("GPU Power", "GPU Core (NVVDD) Input Power (sum)", "GPU Power")]
+	// AMD: board power before chip power
+	[InlineData("Total Graphics Power (TGP)", "Total Board Power (TBP)", "Total Board Power (TBP)")]
+	[InlineData("GPU Core Power (VDDCR_GFX)", "Total Graphics Power (TGP)", "Total Graphics Power (TGP)")]
+	[InlineData("GPU SoC Power (VDDCR_SOC)", "GPU ASIC Power", "GPU ASIC Power")]
+	// No known main power: the first one
+	[InlineData("GPU Rail A Power", "GPU Rail B Power", "GPU Rail A Power")]
+	public void MainPower_IsPickedByLabel(string first, string second, string expected)
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("GPU [#0]: Some GPU")
+			.Power(first, 10)
+			.Power(second, 20)
+			.Build();
+
+		var gpu = Assert.Single(SensorQueries.GetGpu(snapshot, s_fresh, GpuSelection.Dgpu, includeStats: false).Gpus);
+
+		Assert.Equal(expected, Assert.Single(gpu.Power!).Label);
+		Assert.Equal(["power"], gpu.Omitted);
+	}
+
+	[Fact]
+	public void MainPower_IsPickedByTheOriginalLabel()
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("GPU [#0]: NVIDIA GeForce RTX 4080")
+			.Reading(Hwinfo.SharedMemory.SensorType.Power, "GPU Core (NVVDD) Input Power (sum)", 30, "W", "GPU Core (NVVDD) Eingang Energieverbrauch (sum)")
+			.Reading(Hwinfo.SharedMemory.SensorType.Power, "GPU Power", 55, "W", "GPU Energieverbrauch")
+			.Build();
+		var context = QueryContext.From(TestSnapshots.FreshClock, Catalog.LabelStyle.User);
+
+		var gpu = Assert.Single(SensorQueries.GetGpu(snapshot, context, GpuSelection.Dgpu, includeStats: false).Gpus);
+
+		Assert.Equal("GPU Energieverbrauch", Assert.Single(gpu.Power!).Label);
+	}
+
+	[Fact]
+	public void Include_AddsTheRequestedSections()
+	{
+		var result = SensorQueries.GetGpu(TestSnapshots.Amd, s_fresh, GpuSelection.Dgpu, includeStats: false, [GpuSection.Limits, GpuSection.Fans]);
+		var gpu = Assert.Single(result.Gpus);
+
 		// Limits: AMD reports some both as absolute value and as utilization
 		Assert.Contains(gpu.Limits!, value => value is { Label: "GPU PPT Limit (Sustained)", Unit: "W", Value: 228 });
 		Assert.Contains(gpu.Limits!, value => value is { Label: "GPU PPT Limit (Sustained)", Unit: "%", Value: 12.94 });
 		Assert.Contains(gpu.Limits!, value => value is { Label: "GPU Hotspot Thermal Limit", Unit: "%" });
-
 		Assert.Equal(0, Find(gpu.Fans, "GPU Fan").Value);
 		Assert.Equal("%", Find(gpu.Fans, "GPU Fan PWM").Unit);
-		Assert.All(AllValues(gpu), value => Assert.Null(value.Group));
+
+		Assert.Null(gpu.Voltages);
+		Assert.Null(gpu.Other);
+		Assert.Equal(["power", "voltages", "currents", "other"], gpu.Omitted);
+	}
+
+	[Fact]
+	public void IncludeAll_LeavesNothingOut()
+	{
+		var result = SensorQueries.GetGpu(TestSnapshots.Amd, s_fresh, GpuSelection.Dgpu, includeStats: false, [GpuSection.All]);
+		var gpu = Assert.Single(result.Gpus);
+
+		Assert.Equal(9, gpu.Power!.Count);
+		Assert.Equal(12.61, Find(gpu.Currents, "GPU Memory Current (VDDIO)").Value);
+		Assert.Equal(1.35, Find(gpu.Voltages, "GPU Memory Voltage (VDDIO)").Value);
+		Assert.Equal(16, Find(gpu.Other, "PCIe Link Speed").Value);
+		Assert.NotNull(gpu.Limits);
+		Assert.NotNull(gpu.Fans);
+		Assert.Null(gpu.Omitted);
+	}
+
+	[Fact]
+	public void Omitted_OnlyNamesSectionsThatHaveReadings()
+	{
+		var snapshot = new SnapshotBuilder(TestSnapshots.PollTime)
+			.Group("GPU [#0]: NVIDIA GeForce RTX 4090")
+			.Temp("GPU Temperature", 60)
+			.Fan("GPU Fan1", 1500)
+			.Build();
+
+		var gpu = Assert.Single(SensorQueries.GetGpu(snapshot, s_fresh, GpuSelection.Dgpu, includeStats: false).Gpus);
+
+		Assert.Equal(["fans"], gpu.Omitted);
 	}
 
 	[Fact]
@@ -71,7 +170,7 @@ public sealed class GpuQueryTests
 	[Fact]
 	public void Nvidia_WithoutDiscretePrefix_IsStillTheDefault()
 	{
-		var result = SensorQueries.GetGpu(TestSnapshots.IntelNvidia, s_fresh, GpuSelection.Dgpu, includeStats: false);
+		var result = SensorQueries.GetGpu(TestSnapshots.IntelNvidia, s_fresh, GpuSelection.Dgpu, includeStats: false, [GpuSection.All]);
 
 		var gpu = Assert.Single(result.Gpus);
 		Assert.Equal("GPU [#0]: NVIDIA GeForce RTX 4070 Ti: MSI RTX 4070 Ti GAMING X TRIO", gpu.Name);

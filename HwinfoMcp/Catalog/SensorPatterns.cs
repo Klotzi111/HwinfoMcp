@@ -134,5 +134,33 @@ public static partial class SensorPatterns
 	/// <summary>Readings of the system group that describe RAM and page file usage.</summary>
 	public static KeywordSet MemoryUsage { get; } = new("physical memory", "virtual memory", "page file");
 
+	/// <summary>
+	/// The main power reading of a GPU, the only one get_gpu reports by default: the power reading matching
+	/// the earliest pattern wins, and without any match the first power reading HWiNFO lists. Matched against
+	/// the original label.
+	/// </summary>
+	public static IReadOnlyList<Regex> MainGpuPower { get; } =
+	[
+		// NVIDIA and Intel: the whole card
+		new(@"^GPU Power$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		// AMD: "Total Board Power (TBP)", else the chip's "Total Graphics Power (TGP)" or "GPU ASIC Power"
+		new(@"^(?:Total|GPU) Board Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		new(@"^Total Graphics Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		new(@"^GPU (?:ASIC|Package|Total|Card) Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+	];
+
+	/// <summary>
+	/// The main power reading of a CPU, the only one get_cpu reports by default. Picked like
+	/// <see cref="MainGpuPower"/>.
+	/// </summary>
+	public static IReadOnlyList<Regex> MainCpuPower { get; } =
+	[
+		// AMD and Intel
+		new(@"^CPU Package Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		new(@"^(?:CPU )?Package Power\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+		// AMD's power tracked against the PPT limit
+		new(@"^CPU PPT$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant),
+	];
+
 	#endregion
 }

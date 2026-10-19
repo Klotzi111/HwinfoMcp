@@ -24,20 +24,36 @@ public sealed class RecordedSystemTests
 		Assert.Equal("GPU [#0]: NVIDIA GeForce RTX 4080", gpu.Name);
 		Assert.Equal("dgpu", gpu.Kind);
 
-		Assert.Equal(55.26, Find(gpu.Power, "GPU Power").Value);
-		Assert.Equal(48.83, Find(gpu.Power, "GPU 16-pin HVPWR Power").Value);
+		var power = Assert.Single(gpu.Power!);
+		Assert.Equal("GPU Power", power.Label);
+		Assert.Equal(55.26, power.Value);
 		Assert.Equal(62.97, Find(gpu.Temperatures, "GPU Hot Spot Temperature").Value);
 		Assert.Equal(58, Find(gpu.Temperatures, "GPU Memory Junction Temperature").Value);
 		Assert.Equal(0, Find(gpu.MemoryController, "GPU Memory Controller Load").Value);
 		Assert.Equal(2800.49, Find(gpu.MemoryController, "GPU Memory Clock").Value);
 		Assert.Equal(24.14, Find(gpu.Vram, "GPU Memory Usage").Value);
 		Assert.Equal(3952.77, Find(gpu.Vram, "GPU Memory Allocated").Value);
-		Assert.Equal(17.25, Find(gpu.Limits, "Total GPU Power [% of TDP]").Value);
-		Assert.Equal(84, Find(gpu.Limits, "GPU Thermal Limit").Value);
 		Assert.Equal(1, Find(gpu.Throttling, "Performance Limit - Utilization").Value);
 		Assert.Equal(6, gpu.Throttling!.Count);
+		// The RTX 4080 reports no currents, so nothing is left in the default answer beyond these
+		Assert.Null(gpu.Currents);
+		Assert.Equal(["power", "limits", "fans", "voltages", "other"], gpu.Omitted);
+	}
+
+	[Fact]
+	public void Gpu_IncludeAll_AddsLimitsAndFans()
+	{
+		var result = SensorQueries.GetGpu(TestSnapshots.AmdNvidiaGerman, s_original, GpuSelection.Dgpu, includeStats: false, [GpuSection.All]);
+		var gpu = Assert.Single(result.Gpus);
+
+		Assert.Equal(9, gpu.Power!.Count);
+		Assert.Equal(48.83, Find(gpu.Power, "GPU 16-pin HVPWR Power").Value);
+		Assert.Equal(17.25, Find(gpu.Limits, "Total GPU Power [% of TDP]").Value);
+		Assert.Equal(84, Find(gpu.Limits, "GPU Thermal Limit").Value);
 		// The fans are reported in RPM and in %
 		Assert.Equal(4, gpu.Fans!.Count);
+		Assert.Equal(12.19, Find(gpu.Voltages, "GPU 16-pin HVPWR Voltage").Value);
+		Assert.Equal(16, Find(gpu.Other, "PCIe Link Speed").Value);
 	}
 
 	[Fact]
@@ -52,19 +68,31 @@ public sealed class RecordedSystemTests
 	}
 
 	[Fact]
-	public void Cpu_Summary_ReportsTheX3dChip()
+	public void Cpu_Default_ReportsTheX3dChip()
 	{
 		var result = SensorQueries.GetCpu(TestSnapshots.AmdNvidiaGerman, s_original, CpuDetail.Summary, includeStats: false);
 
 		var cpu = Assert.Single(result.Cpus);
 		Assert.Equal("CPU [#0]: AMD Ryzen 7 7800X3D", cpu.Name);
 		Assert.Equal(["CPU [#0]: AMD Ryzen 7 7800X3D", "CPU [#0]: AMD Ryzen 7 7800X3D: Enhanced"], cpu.SensorGroups);
-		Assert.Equal(35.9, Find(cpu.Power, "CPU Package Power").Value);
+		var power = Assert.Single(cpu.Power!);
+		Assert.Equal("CPU Package Power", power.Label);
+		Assert.Equal(35.9, power.Value);
 		Assert.Equal(57.63, Find(cpu.Temperatures, "CPU (Tctl/Tdie)").Value);
 		Assert.Equal(3000, Find(cpu.MemoryController, "Memory Controller Clock (UCLK)").Value);
 		Assert.Equal("Gbps", Find(cpu.MemoryController, "DRAM Read Bandwidth").Unit);
-		Assert.Equal(60.69, Find(cpu.Limits, "Thermal Limit").Value);
 		Assert.Equal(3, cpu.Throttling!.Count);
+		Assert.Equal(["power", "limits", "voltages", "currents", "other"], cpu.Omitted);
+		Assert.Equal(["related"], result.Omitted);
+	}
+
+	[Fact]
+	public void Cpu_IncludeAll_ReportsLimitsAndRelatedReadings()
+	{
+		var result = SensorQueries.GetCpu(TestSnapshots.AmdNvidiaGerman, s_original, CpuDetail.Summary, includeStats: false, [CpuSection.All]);
+
+		var cpu = Assert.Single(result.Cpus);
+		Assert.Equal(60.69, Find(cpu.Limits, "Thermal Limit").Value);
 		Assert.DoesNotContain(AllValues(cpu), value => SensorPatterns.PerCoreLabel.IsMatch(value.Label));
 
 		Assert.Contains(result.Related!, value => value is { Label: "CPU", Unit: "RPM", Value: 972 });

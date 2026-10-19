@@ -95,15 +95,17 @@ names.
 ## Tools
 
 All tools are read-only. Values are rounded to two decimals. Min, max and average (since HWiNFO started
-monitoring) are only included with `includeStats: true`.
+monitoring) are only included with `includeStats: true`. `get_cpu` and `get_gpu` keep their default answer
+short and name the sections they shortened or left out in `omitted`, so Claude knows what it can request with
+`include`.
 
 | Tool | Parameters | What it returns |
 |------|------------|-----------------|
 | `hwinfo_status` | – | Whether HWiNFO's data is readable, time and age of the last poll, number of sensor groups and readings, a warning if the data is stale. |
 | `list_sensors` | – | Every sensor group with its category (`cpu`, `dgpu`, `igpu`, `memory`, `dimm`, `system`, `other`), number of readings and readings per measurement type. |
 | `get_readings` | `sensor`, `label`, `types`, `includeStats`, `limit` | Any readings, filtered by part of the sensor group name, part of the label and measurement types (`Temp`, `Volt`, `Fan`, `Current`, `Power`, `Clock`, `Usage`, `Other`). Returns at most `limit` readings (default 100, max 2000) and says when it cut the answer short. |
-| `get_cpu` | `detail` (`summary`/`full`), `includeStats` | Curated CPU overview: power, temperatures, usage, memory controller (UCLK, FCLK, DRAM bandwidth), clocks, limits, throttling, voltages, currents, plus CPU readings of other groups (mainboard CPU temperature and fan, memory clock). `summary` leaves out per-core values, C-state residencies are always left out. |
-| `get_gpu` | `type` (`dgpu`/`igpu`/`all`), `includeStats` | Curated GPU overview: board and chip power, temperatures incl. hotspot and memory junction, usage, memory controller load and memory clock, VRAM usage, clocks, limits, throttling, fans. Defaults to the discrete GPU and falls back to the integrated one. |
+| `get_cpu` | `detail` (`summary`/`full`), `include`, `includeStats` | Curated CPU overview: main power ("CPU Package Power"), temperatures, usage, memory controller (UCLK, FCLK, DRAM bandwidth), clocks, throttling. The rarely needed sections come only with `include`: `power` (all power readings), `voltages`, `currents` (incl. TDC/EDC), `limits` (PPT, TDC, EDC, thermal limit), `other`, `related` (CPU readings of other groups: mainboard CPU temperature and fan, Vcore, memory clock), or `all`. `summary` leaves out per-core values, C-state residencies are always left out. |
+| `get_gpu` | `type` (`dgpu`/`igpu`/`all`), `include`, `includeStats` | Curated GPU overview: main power (NVIDIA's and Intel's "GPU Power", AMD's board power), temperatures incl. hotspot and memory junction, usage, memory controller load and memory clock, VRAM usage, clocks, throttling. The rarely needed sections come only with `include`: `power` (all power readings: chip, rails, connectors), `voltages`, `currents`, `limits`, `fans`, `other`, or `all`. Defaults to the discrete GPU and falls back to the integrated one. |
 | `get_memory` | `includeStats` | Memory clock and timings (Tcas, Trcd, Trp, Tras, Trc, Trfc, command rate), every DIMM (temperatures, voltages, power), RAM and page file usage, and the CPU's memory controller readings. |
 
 ### Example questions
@@ -125,12 +127,12 @@ monitoring) are only included with `includeStats: true`.
 ```json
 {"pollTime":"2026-10-19T10:00:00+02:00","detail":"summary","cpus":[{"name":"CPU [#0]: AMD Ryzen 9 7900X",
 "sensorGroups":["CPU [#0]: AMD Ryzen 9 7900X","CPU [#0]: AMD Ryzen 9 7900X: Enhanced"],
-"power":[{"label":"CPU Package Power","value":61.65,"unit":"W","group":"Enhanced"}, ...],
+"power":[{"label":"CPU Package Power","value":61.65,"unit":"W","group":"Enhanced"}],
 "temperatures":[{"label":"CPU (Tctl/Tdie)","value":53.13,"unit":"°C","group":"Enhanced"}, ...],
 "memoryController":[{"label":"Memory Controller Clock (UCLK)","value":3100,"unit":"MHz","group":"Enhanced"},
 {"label":"DRAM Read Bandwidth","value":0.71,"unit":"GB/s","group":"Enhanced"}, ...],
-"limits":[{"label":"CPU PPT Limit","value":41.52,"unit":"%","group":"Enhanced"}, ...], ...}],
-"related":[{"label":"CPU","value":824,"unit":"RPM","group":"ASUS TUF GAMING X670E-PLUS WIFI (Nuvoton NCT6799D)"}, ...]}
+"throttling":[{"label":"Thermal Throttling (HTC)","value":0,"unit":"Yes/No","group":"Enhanced"}, ...], ...,
+"omitted":["power","limits","voltages","currents","other"]}],"omitted":["related"]}
 ```
 
 A reading's `group` names the HWiNFO sensor group it comes from where that isn't obvious: it is left out for a

@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text.RegularExpressions;
 using Hwinfo.SharedMemory;
 using HwinfoMcp.Catalog;
 using HwinfoMcp.Sensors;
@@ -38,6 +39,25 @@ public static class SensorQueries
 
 	/// <summary>The most readings get_readings returns.</summary>
 	public const int MaxReadingLimit = 2000;
+
+	// The sections get_gpu and get_cpu only report on request. Of the power section, they report the main
+	// power reading unless the whole section is requested.
+	private static readonly (GpuSection Section, ReadingCategory Category)[] s_optionalGpuSections =
+	[
+		(GpuSection.Voltages, ReadingCategory.Voltages),
+		(GpuSection.Currents, ReadingCategory.Currents),
+		(GpuSection.Limits, ReadingCategory.Limits),
+		(GpuSection.Fans, ReadingCategory.Fans),
+		(GpuSection.Other, ReadingCategory.Other),
+	];
+
+	private static readonly (CpuSection Section, ReadingCategory Category)[] s_optionalCpuSections =
+	[
+		(CpuSection.Voltages, ReadingCategory.Voltages),
+		(CpuSection.Currents, ReadingCategory.Currents),
+		(CpuSection.Limits, ReadingCategory.Limits),
+		(CpuSection.Other, ReadingCategory.Other),
+	];
 
 	/// <summary>Builds the answer of hwinfo_status. Unlike the other queries it also handles snapshots without data.</summary>
 	public static StatusResult GetStatus(SensorSnapshot snapshot, QueryContext context)
@@ -133,9 +153,27 @@ public static class SensorQueries
 		return new ReadingsResult(pollTime, warning, matches.Count, returned, truncated, hint, groups);
 	}
 
-	/// <summary>Builds the answer of get_cpu: the readings of every CPU sorted into sections.</summary>
-	public static CpuResult GetCpu(SensorSnapshot snapshot, QueryContext context, CpuDetail detail, bool includeStats)
+	/// <summary>
+	/// Builds the answer of get_cpu: the readings of every CPU sorted into sections. Of the power readings only
+	/// the main one is reported, and voltages, currents, limits, other readings and the CPU readings of other
+	/// groups not at all, unless they are requested; the answer names the sections it shortened or left out.
+	/// </summary>
+	/// <param name="snapshot">The data.</param>
+	/// <param name="context">When and how the query runs.</param>
+	/// <param name="detail">Whether to include per-core and per-thread values.</param>
+	/// <param name="includeStats">Whether to include min, max and average.</param>
+	/// <param name="include">The rarely needed sections to include too. Null or empty for none.</param>
+	public static CpuResult GetCpu(
+		SensorSnapshot snapshot,
+		QueryContext context,
+		CpuDetail detail,
+		bool includeStats,
+		IReadOnlyCollection<CpuSection>? include = null)
 	{
+		include ??= [];
+		var (excluded, mainPower) = ResolveSections(include, CpuSection.All, CpuSection.Power, s_optionalCpuSections, SensorPatterns.MainCpuPower);
+		var includeRelated = include.Contains(CpuSection.All) || include.Contains(CpuSection.Related);
+
 		var readings = snapshot.Readings.ToLookup(reading => reading.Sensor);
 		var cpus = SensorClassifier.FindDevices(snapshot.Sensors, GroupCategory.Cpu)
 			.Select(device => BuildDevice(
@@ -144,7 +182,9 @@ public static class SensorQueries
 				context,
 				includeStats,
 				includeGroup: group => !SensorClassifier.IsExcludedCpuGroup(group),
-				includeReading: reading => detail == CpuDetail.Full || !SensorClassifier.IsPerCore(reading)
+				includeReading: reading => detail == CpuDetail.Full || !SensorClassifier.IsPerCore(reading),
+				excluded,
+				mainPower
 			))
 			.ToList();
 
@@ -172,13 +212,30 @@ public static class SensorQueries
 			detail == CpuDetail.Full ? "full" : "summary",
 			cpus.Count == 0 ? Messages.NoCpu : null,
 			cpus,
-			NullIfEmpty(related)
+			includeRelated ? NullIfEmpty(related) : null,
+			includeRelated || related.Count == 0 ? null : ["related"]
 		);
 	}
 
-	/// <summary>Builds the answer of get_gpu: the readings of the selected GPUs sorted into sections.</summary>
-	public static GpuResult GetGpu(SensorSnapshot snapshot, QueryContext context, GpuSelection selection, bool includeStats)
+	/// <summary>
+	/// Builds the answer of get_gpu: the readings of the selected GPUs sorted into sections. Of the power
+	/// readings only the main one is reported, and voltages, currents, limits, fans and other readings not at
+	/// all, unless they are requested; the answer names the sections it shortened or left out.
+	/// </summary>
+	/// <param name="snapshot">The data.</param>
+	/// <param name="context">When and how the query runs.</param>
+	/// <param name="selection">Which GPUs to report.</param>
+	/// <param name="includeStats">Whether to include min, max and average.</param>
+	/// <param name="include">The rarely needed sections to include too. Null or empty for none.</param>
+	public static GpuResult GetGpu(
+		SensorSnapshot snapshot,
+		QueryContext context,
+		GpuSelection selection,
+		bool includeStats,
+		IReadOnlyCollection<GpuSection>? include = null)
 	{
+		var (excluded, mainPower) = ResolveSections(include ?? [], GpuSection.All, GpuSection.Power, s_optionalGpuSections, SensorPatterns.MainGpuPower);
+
 		var readings = snapshot.Readings.ToLookup(reading => reading.Sensor);
 		var devices = SensorClassifier.FindDevices(snapshot.Sensors, GroupCategory.Gpu);
 
@@ -202,7 +259,7 @@ public static class SensorQueries
 		}
 
 		var gpus = selected
-			.Select(device => BuildDevice(device, readings, context, includeStats, includeGroup: _ => true, includeReading: _ => true))
+			.Select(device => BuildDevice(device, readings, context, includeStats, includeGroup: _ => true, includeReading: _ => true, excluded, mainPower))
 			.ToList();
 
 		var (pollTime, warning) = GetFreshness(snapshot, context);
@@ -348,22 +405,60 @@ public static class SensorQueries
 			&& SensorClassifier.LabelMatches(SensorPatterns.CpuRelated, reading);
 	}
 
+	/// <summary>
+	/// Works out from the include parameter of get_gpu or get_cpu which sections to leave out, and whether to
+	/// shorten the power section to its main reading.
+	/// </summary>
+	/// <returns>
+	/// The sections to leave out, and the patterns of the main power reading, or null to report all power readings.
+	/// </returns>
+	private static (HashSet<ReadingCategory> Excluded, IReadOnlyList<Regex>? MainPower) ResolveSections<TSection>(
+		IReadOnlyCollection<TSection> include,
+		TSection all,
+		TSection power,
+		IEnumerable<(TSection Section, ReadingCategory Category)> optionalSections,
+		IReadOnlyList<Regex> mainPowerPatterns)
+		where TSection : struct, Enum
+	{
+		if (include.Contains(all))
+		{
+			return ([], null);
+		}
+
+		var excluded = optionalSections
+			.Where(section => !include.Contains(section.Section))
+			.Select(section => section.Category)
+			.ToHashSet();
+		return (excluded, include.Contains(power) ? null : mainPowerPatterns);
+	}
+
 	private static DeviceReadings BuildDevice(
 		Device device,
 		ILookup<Sensor, SensorReading> readings,
 		QueryContext context,
 		bool includeStats,
 		Func<Sensor, bool> includeGroup,
-		Func<SensorReading, bool> includeReading)
+		Func<SensorReading, bool> includeReading,
+		IReadOnlySet<ReadingCategory>? excludedSections = null,
+		IReadOnlyList<Regex>? mainPowerPatterns = null)
 	{
 		var groups = device.Groups.Where(includeGroup).ToList();
 		var sections = new Dictionary<ReadingCategory, List<ReadingValue>>();
+		var omitted = new SortedSet<ReadingCategory>();
+		// The readings behind the power section, in the same order, to pick the main one by its original label
+		var powerReadings = new List<SensorReading>();
 		foreach (var group in groups)
 		{
 			var groupName = ShortGroupName(device, group, context);
 			foreach (var reading in readings[group].Where(includeReading))
 			{
 				var category = SensorClassifier.CategorizeReading(reading, group);
+				if (excludedSections?.Contains(category) == true)
+				{
+					omitted.Add(category);
+					continue;
+				}
+
 				if (!sections.TryGetValue(category, out var section))
 				{
 					section = [];
@@ -371,7 +466,18 @@ public static class SensorQueries
 				}
 
 				section.Add(ToValue(reading, context, includeStats, groupName));
+				if (category == ReadingCategory.Power)
+				{
+					powerReadings.Add(reading);
+				}
 			}
+		}
+
+		if (mainPowerPatterns is not null && powerReadings.Count > 1)
+		{
+			var main = SensorClassifier.FindMainPower(powerReadings, mainPowerPatterns);
+			sections[ReadingCategory.Power] = [sections[ReadingCategory.Power][main]];
+			omitted.Add(ReadingCategory.Power);
 		}
 
 		return new DeviceReadings
@@ -391,6 +497,17 @@ public static class SensorQueries
 			Voltages = sections.GetValueOrDefault(ReadingCategory.Voltages),
 			Currents = sections.GetValueOrDefault(ReadingCategory.Currents),
 			Other = sections.GetValueOrDefault(ReadingCategory.Other),
+			Omitted = omitted.Count == 0 ? null : [.. omitted.Select(SectionName)],
+		};
+	}
+
+	/// <summary>The name of a section as the answer and the include parameter of get_gpu spell it.</summary>
+	private static string SectionName(ReadingCategory category)
+	{
+		return category switch
+		{
+			ReadingCategory.MemoryController => "memoryController",
+			_ => category.ToString().ToLowerInvariant(),
 		};
 	}
 
