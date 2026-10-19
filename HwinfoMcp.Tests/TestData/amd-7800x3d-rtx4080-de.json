@@ -1,0 +1,3221 @@
+{
+	"description": "AMD Ryzen 7 7800X3D with its Radeon iGPU and an NVIDIA GeForce RTX 4080, HWiNFO in German. Drive serial number removed.",
+	"pollTime": "2026-10-19T09:16:23+00:00",
+	"sensors": [
+		{
+			"id": 4026532609,
+			"instance": 0,
+			"nameOrig": "System: MSI MS-7D75",
+			"readings": [
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Virtual Memory Committed",
+					"labelUser": "Virtueller Speicher zugewiesen",
+					"unit": "MB",
+					"value": 26760,
+					"min": 26303,
+					"max": 28456,
+					"avg": 26876.90432503277
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Virtual Memory Available",
+					"labelUser": "Virtueller Speicher verfügbar",
+					"unit": "MB",
+					"value": 9057,
+					"min": 7361,
+					"max": 9514,
+					"avg": 8940.093053735249
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Virtual Memory Load",
+					"labelUser": "Auslastung des virtuellen Speichers",
+					"unit": "%",
+					"value": 74.7,
+					"min": 73.4,
+					"max": 79.4,
+					"avg": 74.98833551769316
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Physical Memory Used",
+					"labelUser": "Physischer Speicher verwendet",
+					"unit": "MB",
+					"value": 12791,
+					"min": 12738,
+					"max": 16360,
+					"avg": 13530.20183486239
+				},
+				{
+					"id": 134217732,
+					"type": "Other",
+					"labelOrig": "Physical Memory Available",
+					"labelUser": "Physischer Speicher verfügbar",
+					"unit": "MB",
+					"value": 19058,
+					"min": 15489,
+					"max": 19111,
+					"avg": 18318.79161205766
+				},
+				{
+					"id": 134217733,
+					"type": "Other",
+					"labelOrig": "Physical Memory Load",
+					"labelUser": "Physische Speicher-Auslastung",
+					"unit": "%",
+					"value": 40.1,
+					"min": 39.9,
+					"max": 51.3,
+					"avg": 42.43250327654004
+				},
+				{
+					"id": 134217734,
+					"type": "Other",
+					"labelOrig": "Page File Usage",
+					"labelUser": "Auslastung der Auslagerungs-Datei",
+					"unit": "%",
+					"value": 1.919457220262097,
+					"min": 1.5533447265625,
+					"max": 1.9253638482862903,
+					"avg": 1.6278681027099484
+				}
+			]
+		},
+		{
+			"id": 4026532608,
+			"instance": 0,
+			"nameOrig": "CPU [#0]: AMD Ryzen 7 7800X3D",
+			"readings": [
+				{
+					"id": 33554432,
+					"type": "Volt",
+					"labelOrig": "Core 0 VID",
+					"unit": "V",
+					"value": 1.125,
+					"min": 0.91,
+					"max": 1.165,
+					"avg": 1.127136304062905
+				},
+				{
+					"id": 33554433,
+					"type": "Volt",
+					"labelOrig": "Core 1 VID",
+					"unit": "V",
+					"value": 1.105,
+					"min": 0.91,
+					"max": 1.165,
+					"avg": 1.1278833551769292
+				},
+				{
+					"id": 33554434,
+					"type": "Volt",
+					"labelOrig": "Core 2 VID",
+					"unit": "V",
+					"value": 1.105,
+					"min": 0.91,
+					"max": 1.165,
+					"avg": 1.1279226736566126
+				},
+				{
+					"id": 33554435,
+					"type": "Volt",
+					"labelOrig": "Core 3 VID",
+					"unit": "V",
+					"value": 1.105,
+					"min": 0.91,
+					"max": 1.165,
+					"avg": 1.1277785058977667
+				},
+				{
+					"id": 33554436,
+					"type": "Volt",
+					"labelOrig": "Core 4 VID",
+					"unit": "V",
+					"value": 1.0899999999999999,
+					"min": 0.91,
+					"max": 1.165,
+					"avg": 1.1276212319790269
+				},
+				{
+					"id": 33554437,
+					"type": "Volt",
+					"labelOrig": "Core 5 VID",
+					"unit": "V",
+					"value": 1.0899999999999999,
+					"min": 0.91,
+					"max": 1.165,
+					"avg": 1.1275425950196567
+				},
+				{
+					"id": 33554438,
+					"type": "Volt",
+					"labelOrig": "Core 6 VID",
+					"unit": "V",
+					"value": 1.0899999999999999,
+					"min": 1.03,
+					"max": 1.165,
+					"avg": 1.1277457404980316
+				},
+				{
+					"id": 33554439,
+					"type": "Volt",
+					"labelOrig": "Core 7 VID",
+					"unit": "V",
+					"value": 1.0899999999999999,
+					"min": 1.03,
+					"max": 1.165,
+					"avg": 1.127640891218869
+				},
+				{
+					"id": 100663296,
+					"type": "Clock",
+					"labelOrig": "Core 0 Clock (perf #5/6)",
+					"labelUser": "Core 0 Takt (perf #5/6)",
+					"unit": "MHz",
+					"value": 4700,
+					"min": 3050,
+					"max": 4775,
+					"avg": 4194.997815640009
+				},
+				{
+					"id": 100663297,
+					"type": "Clock",
+					"labelOrig": "Core 1 Clock (perf #1/1)",
+					"labelUser": "Core 1 Takt (perf #1/1)",
+					"unit": "MHz",
+					"value": 4675,
+					"min": 3100,
+					"max": 4850,
+					"avg": 4609.829619921357
+				},
+				{
+					"id": 100663298,
+					"type": "Clock",
+					"labelOrig": "Core 2 Clock (perf #6/7)",
+					"labelUser": "Core 2 Takt (perf #6/7)",
+					"unit": "MHz",
+					"value": 4675,
+					"min": 3016.666666666667,
+					"max": 4775,
+					"avg": 4027.6911314984736
+				},
+				{
+					"id": 100663299,
+					"type": "Clock",
+					"labelOrig": "Core 3 Clock (perf #1/2)",
+					"labelUser": "Core 3 Takt (perf #1/2)",
+					"unit": "MHz",
+					"value": 4675,
+					"min": 3100,
+					"max": 4850,
+					"avg": 4619.517256443859
+				},
+				{
+					"id": 100663300,
+					"type": "Clock",
+					"labelOrig": "Core 4 Clock (perf #4/5)",
+					"labelUser": "Core 4 Takt (perf #4/5)",
+					"unit": "MHz",
+					"value": 4625,
+					"min": 3133.333333333333,
+					"max": 4850,
+					"avg": 4693.359545653129
+				},
+				{
+					"id": 100663301,
+					"type": "Clock",
+					"labelOrig": "Core 5 Clock (perf #2/3)",
+					"labelUser": "Core 5 Takt (perf #2/3)",
+					"unit": "MHz",
+					"value": 4625,
+					"min": 3116.666666666667,
+					"max": 4850,
+					"avg": 4641.2079510703425
+				},
+				{
+					"id": 100663302,
+					"type": "Clock",
+					"labelOrig": "Core 6 Clock (perf #7/8)",
+					"labelUser": "Core 6 Takt (perf #7/8)",
+					"unit": "MHz",
+					"value": 4625,
+					"min": 3016.666666666667,
+					"max": 4800,
+					"avg": 4157.284840541716
+				},
+				{
+					"id": 100663303,
+					"type": "Clock",
+					"labelOrig": "Core 7 Clock (perf #3/4)",
+					"labelUser": "Core 7 Takt (perf #3/4)",
+					"unit": "MHz",
+					"value": 4625,
+					"min": 3083.333333333333,
+					"max": 4825,
+					"avg": 4599.148099606816
+				},
+				{
+					"id": 100663304,
+					"type": "Clock",
+					"labelOrig": "Bus Clock",
+					"labelUser": "Bustakt",
+					"unit": "MHz",
+					"value": 100,
+					"min": 100,
+					"max": 100,
+					"avg": 100
+				},
+				{
+					"id": 100663314,
+					"type": "Clock",
+					"labelOrig": "Core 0 T0 Effective Clock",
+					"labelUser": "Core 0 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 338.5525817871094,
+					"min": 13.116448402404785,
+					"max": 1666.862548828125,
+					"avg": 240.39695965353187
+				},
+				{
+					"id": 100663315,
+					"type": "Clock",
+					"labelOrig": "Core 0 T1 Effective Clock",
+					"labelUser": "Core 0 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 16.500641853545893,
+					"min": 2.115256722814528,
+					"max": 915.815012142232,
+					"avg": 28.45051652384208
+				},
+				{
+					"id": 100663316,
+					"type": "Clock",
+					"labelOrig": "Core 1 T0 Effective Clock",
+					"labelUser": "Core 1 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 1319.6896701974708,
+					"min": 174.4805138336185,
+					"max": 3174.311591204575,
+					"avg": 597.8710861874429
+				},
+				{
+					"id": 100663317,
+					"type": "Clock",
+					"labelOrig": "Core 1 T1 Effective Clock",
+					"labelUser": "Core 1 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 516.7917546514142,
+					"min": 52.228976909878895,
+					"max": 2940.987771021283,
+					"avg": 381.9052045543589
+				},
+				{
+					"id": 100663318,
+					"type": "Clock",
+					"labelOrig": "Core 2 T0 Effective Clock",
+					"labelUser": "Core 2 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 96.25252719877663,
+					"min": 9.021282273634203,
+					"max": 1146.8842511124253,
+					"avg": 68.99103246571383
+				},
+				{
+					"id": 100663319,
+					"type": "Clock",
+					"labelOrig": "Core 2 T1 Effective Clock",
+					"labelUser": "Core 2 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 8.385122324435692,
+					"min": 1.5631432964590193,
+					"max": 877.2316586649902,
+					"avg": 17.790541699688784
+				},
+				{
+					"id": 100663320,
+					"type": "Clock",
+					"labelOrig": "Core 3 T0 Effective Clock",
+					"labelUser": "Core 3 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 807.5285559541188,
+					"min": 61.399624540481824,
+					"max": 4117.843167963692,
+					"avg": 491.4914414408124
+				},
+				{
+					"id": 100663321,
+					"type": "Clock",
+					"labelOrig": "Core 3 T1 Effective Clock",
+					"labelUser": "Core 3 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 815.2152464407748,
+					"min": 77.08051306366136,
+					"max": 3446.0405510612004,
+					"avg": 490.4438725545617
+				},
+				{
+					"id": 100663322,
+					"type": "Clock",
+					"labelOrig": "Core 4 T0 Effective Clock",
+					"labelUser": "Core 4 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 368.3132311207235,
+					"min": 60.87859975568525,
+					"max": 2290.4740406778074,
+					"avg": 227.1565381203737
+				},
+				{
+					"id": 100663323,
+					"type": "Clock",
+					"labelOrig": "Core 4 T1 Effective Clock",
+					"labelUser": "Core 4 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 13.504498741809376,
+					"min": 2.979247521465114,
+					"max": 924.5417983000607,
+					"avg": 25.928645819723677
+				},
+				{
+					"id": 100663324,
+					"type": "Clock",
+					"labelOrig": "Core 5 T0 Effective Clock",
+					"labelUser": "Core 5 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 832.6994497542591,
+					"min": 77.00891736649919,
+					"max": 2724.809862240255,
+					"avg": 396.51778646296947
+				},
+				{
+					"id": 100663325,
+					"type": "Clock",
+					"labelOrig": "Core 5 T1 Effective Clock",
+					"labelUser": "Core 5 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 39.96402764145753,
+					"min": 4.412191384267174,
+					"max": 884.2440478819965,
+					"avg": 39.13913650703792
+				},
+				{
+					"id": 100663326,
+					"type": "Clock",
+					"labelOrig": "Core 6 T0 Effective Clock",
+					"labelUser": "Core 6 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 15.874285359063968,
+					"min": 3.0848819601234294,
+					"max": 4221.905526372613,
+					"avg": 84.96010183469961
+				},
+				{
+					"id": 100663327,
+					"type": "Clock",
+					"labelOrig": "Core 6 T1 Effective Clock",
+					"labelUser": "Core 6 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 29.671916106099967,
+					"min": 3.7293359453815547,
+					"max": 3885.5517248066835,
+					"avg": 64.24706985307445
+				},
+				{
+					"id": 100663328,
+					"type": "Clock",
+					"labelOrig": "Core 7 T0 Effective Clock",
+					"labelUser": "Core 7 T0 Effektiver Takt",
+					"unit": "MHz",
+					"value": 499.81359666802325,
+					"min": 46.0973683766277,
+					"max": 2234.993391327488,
+					"avg": 249.3065240831072
+				},
+				{
+					"id": 100663329,
+					"type": "Clock",
+					"labelOrig": "Core 7 T1 Effective Clock",
+					"labelUser": "Core 7 T1 Effektiver Takt",
+					"unit": "MHz",
+					"value": 40.38131891133746,
+					"min": 5.904365852630446,
+					"max": 844.6127495144253,
+					"avg": 36.177660612326854
+				},
+				{
+					"id": 100663330,
+					"type": "Clock",
+					"labelOrig": "Average Effective Clock",
+					"labelUser": "Durchschnittlicher Effektiver Takt",
+					"unit": "MHz",
+					"value": 359.94615154440123,
+					"min": 59.037679336735714,
+					"max": 1650.967207287262,
+					"avg": 215.04838239832938
+				},
+				{
+					"id": 117440512,
+					"type": "Usage",
+					"labelOrig": "Core 0 T0 Usage",
+					"labelUser": "Core 0 T0 Auslastung",
+					"unit": "%",
+					"value": 4.6,
+					"min": 0,
+					"max": 36.5,
+					"avg": 4.8562254259502025
+				},
+				{
+					"id": 117440513,
+					"type": "Usage",
+					"labelOrig": "Core 0 T1 Usage",
+					"labelUser": "Core 0 T1 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 17,
+					"avg": 0.4477064220183479
+				},
+				{
+					"id": 117440514,
+					"type": "Usage",
+					"labelOrig": "Core 1 T0 Usage",
+					"labelUser": "Core 1 T0 Auslastung",
+					"unit": "%",
+					"value": 25.3,
+					"min": 0.7,
+					"max": 64.8,
+					"avg": 10.530275229357818
+				},
+				{
+					"id": 117440515,
+					"type": "Usage",
+					"labelOrig": "Core 1 T1 Usage",
+					"labelUser": "Core 1 T1 Auslastung",
+					"unit": "%",
+					"value": 10,
+					"min": 0,
+					"max": 65.1,
+					"avg": 6.9077326343381475
+				},
+				{
+					"id": 117440516,
+					"type": "Usage",
+					"labelOrig": "Core 2 T0 Usage",
+					"labelUser": "Core 2 T0 Auslastung",
+					"unit": "%",
+					"value": 2.3,
+					"min": 0,
+					"max": 24.3,
+					"avg": 1.135648754914813
+				},
+				{
+					"id": 117440517,
+					"type": "Usage",
+					"labelOrig": "Core 2 T1 Usage",
+					"labelUser": "Core 2 T1 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 17,
+					"avg": 0.2933158584534722
+				},
+				{
+					"id": 117440518,
+					"type": "Usage",
+					"labelOrig": "Core 3 T0 Usage",
+					"labelUser": "Core 3 T0 Auslastung",
+					"unit": "%",
+					"value": 6.9,
+					"min": 0,
+					"max": 87.3,
+					"avg": 8.971690694626501
+				},
+				{
+					"id": 117440519,
+					"type": "Usage",
+					"labelOrig": "Core 3 T1 Usage",
+					"labelUser": "Core 3 T1 Auslastung",
+					"unit": "%",
+					"value": 15.3,
+					"min": 0,
+					"max": 75.6,
+					"avg": 8.905635648754917
+				},
+				{
+					"id": 117440520,
+					"type": "Usage",
+					"labelOrig": "Core 4 T0 Usage",
+					"labelUser": "Core 4 T0 Auslastung",
+					"unit": "%",
+					"value": 6.1,
+					"min": 0,
+					"max": 51.2,
+					"avg": 2.9280471821756184
+				},
+				{
+					"id": 117440521,
+					"type": "Usage",
+					"labelOrig": "Core 4 T1 Usage",
+					"labelUser": "Core 4 T1 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 19.3,
+					"avg": 0.41245085190039205
+				},
+				{
+					"id": 117440522,
+					"type": "Usage",
+					"labelOrig": "Core 5 T0 Usage",
+					"labelUser": "Core 5 T0 Auslastung",
+					"unit": "%",
+					"value": 11.5,
+					"min": 0,
+					"max": 52.8,
+					"avg": 6.8283093053735255
+				},
+				{
+					"id": 117440523,
+					"type": "Usage",
+					"labelOrig": "Core 5 T1 Usage",
+					"labelUser": "Core 5 T1 Auslastung",
+					"unit": "%",
+					"value": 0.7,
+					"min": 0,
+					"max": 18.6,
+					"avg": 0.6150720838794224
+				},
+				{
+					"id": 117440524,
+					"type": "Usage",
+					"labelOrig": "Core 6 T0 Usage",
+					"labelUser": "Core 6 T0 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 92.1,
+					"avg": 1.5836173001310663
+				},
+				{
+					"id": 117440525,
+					"type": "Usage",
+					"labelOrig": "Core 6 T1 Usage",
+					"labelUser": "Core 6 T1 Auslastung",
+					"unit": "%",
+					"value": 0.7,
+					"min": 0,
+					"max": 84.3,
+					"avg": 1.1541284403669774
+				},
+				{
+					"id": 117440526,
+					"type": "Usage",
+					"labelOrig": "Core 7 T0 Usage",
+					"labelUser": "Core 7 T0 Auslastung",
+					"unit": "%",
+					"value": 5.3,
+					"min": 0,
+					"max": 35.7,
+					"avg": 4.06369593709042
+				},
+				{
+					"id": 117440527,
+					"type": "Usage",
+					"labelOrig": "Core 7 T1 Usage",
+					"labelUser": "Core 7 T1 Auslastung",
+					"unit": "%",
+					"value": 0.7,
+					"min": 0,
+					"max": 16.2,
+					"avg": 0.5010484927916107
+				},
+				{
+					"id": 117440528,
+					"type": "Usage",
+					"labelOrig": "Max CPU/Thread Usage",
+					"labelUser": "Maximale CPU-/Thread-Auslastung",
+					"unit": "%",
+					"value": 25.3,
+					"min": 3.1,
+					"max": 92.1,
+					"avg": 14.260550458715601
+				},
+				{
+					"id": 117440529,
+					"type": "Usage",
+					"labelOrig": "Total CPU Usage",
+					"labelUser": "Gesamte CPU-Auslastung",
+					"unit": "%",
+					"value": 5.5874999999999995,
+					"min": 0.6124999999999999,
+					"max": 32.975,
+					"avg": 3.758412516382699
+				},
+				{
+					"id": 117440531,
+					"type": "Usage",
+					"labelOrig": "Core 0 T0 Utility",
+					"labelUser": "Core 0 T0 Effizienz",
+					"unit": "%",
+					"value": 7.330252035745556,
+					"min": 1.142905858694024,
+					"max": 36.988129458416935,
+					"avg": 5.6238208289426606
+				},
+				{
+					"id": 117440532,
+					"type": "Usage",
+					"labelOrig": "Core 0 T1 Utility",
+					"labelUser": "Core 0 T1 Effizienz",
+					"unit": "%",
+					"value": 0.3721706498741816,
+					"min": 0.04057613857951215,
+					"max": 21.698038520385346,
+					"avg": 0.6478374845005068
+				},
+				{
+					"id": 117440533,
+					"type": "Usage",
+					"labelOrig": "Core 1 T0 Utility",
+					"labelUser": "Core 1 T0 Effizienz",
+					"unit": "%",
+					"value": 29.931399996244224,
+					"min": 3.865740025821981,
+					"max": 74.96414194226627,
+					"avg": 13.628672351862738
+				},
+				{
+					"id": 117440534,
+					"type": "Usage",
+					"labelOrig": "Core 1 T1 Utility",
+					"labelUser": "Core 1 T1 Effizienz",
+					"unit": "%",
+					"value": 11.168836666317171,
+					"min": 1.130625952690789,
+					"max": 69.76746563653357,
+					"avg": 8.788281905059778
+				},
+				{
+					"id": 117440535,
+					"type": "Usage",
+					"labelOrig": "Core 2 T0 Utility",
+					"labelUser": "Core 2 T0 Effizienz",
+					"unit": "%",
+					"value": 2.1551247382702834,
+					"min": 0.16913215186169642,
+					"max": 26.304299525785762,
+					"avg": 1.5468149395854676
+				},
+				{
+					"id": 117440536,
+					"type": "Usage",
+					"labelOrig": "Core 2 T1 Utility",
+					"labelUser": "Core 2 T1 Effizienz",
+					"unit": "%",
+					"value": 0.17884017260873136,
+					"min": 0.029170624107332968,
+					"max": 20.796739093439797,
+					"avg": 0.4030630094795848
+				},
+				{
+					"id": 117440537,
+					"type": "Usage",
+					"labelOrig": "Core 3 T0 Utility",
+					"labelUser": "Core 3 T0 Effizienz",
+					"unit": "%",
+					"value": 17.60875515243702,
+					"min": 1.3849837062715664,
+					"max": 97.55967413814524,
+					"avg": 11.293171174104348
+				},
+				{
+					"id": 117440538,
+					"type": "Usage",
+					"labelOrig": "Core 3 T1 Utility",
+					"labelUser": "Core 3 T1 Effizienz",
+					"unit": "%",
+					"value": 17.7777969043174,
+					"min": 1.6764103499280691,
+					"max": 81.42817835754994,
+					"avg": 11.218784803398968
+				},
+				{
+					"id": 117440539,
+					"type": "Usage",
+					"labelOrig": "Core 4 T0 Utility",
+					"labelUser": "Core 4 T0 Effizienz",
+					"unit": "%",
+					"value": 8.002579733482312,
+					"min": 1.108704630724242,
+					"max": 52.29914087146832,
+					"avg": 4.925422952320873
+				},
+				{
+					"id": 117440540,
+					"type": "Usage",
+					"labelOrig": "Core 4 T1 Utility",
+					"labelUser": "Core 4 T1 Effizienz",
+					"unit": "%",
+					"value": 0.3001222967374235,
+					"min": 0.06061965498784125,
+					"max": 21.66599440556341,
+					"avg": 0.5952979174729712
+				},
+				{
+					"id": 117440541,
+					"type": "Usage",
+					"labelOrig": "Core 5 T0 Utility",
+					"labelUser": "Core 5 T0 Effizienz",
+					"unit": "%",
+					"value": 18.168477776091166,
+					"min": 1.6170518162732999,
+					"max": 61.84200486773384,
+					"avg": 8.905465363333594
+				},
+				{
+					"id": 117440542,
+					"type": "Usage",
+					"labelOrig": "Core 5 T1 Utility",
+					"labelUser": "Core 5 T1 Effizienz",
+					"unit": "%",
+					"value": 0.9041531596453629,
+					"min": 0.08965190792326143,
+					"max": 20.774671298806265,
+					"avg": 0.9006958959781278
+				},
+				{
+					"id": 117440543,
+					"type": "Usage",
+					"labelOrig": "Core 6 T0 Utility",
+					"labelUser": "Core 6 T0 Effizienz",
+					"unit": "%",
+					"value": 0.30776627924991273,
+					"min": 0.053031971698045695,
+					"max": 100.0922891504883,
+					"avg": 1.9385324517023839
+				},
+				{
+					"id": 117440544,
+					"type": "Usage",
+					"labelOrig": "Core 6 T1 Utility",
+					"labelUser": "Core 6 T1 Effizienz",
+					"unit": "%",
+					"value": 0.6291709407928866,
+					"min": 0.06538813221064015,
+					"max": 92.0635505497111,
+					"avg": 1.471544438379043
+				},
+				{
+					"id": 117440545,
+					"type": "Usage",
+					"labelOrig": "Core 7 T0 Utility",
+					"labelUser": "Core 7 T0 Effizienz",
+					"unit": "%",
+					"value": 11.007549847852843,
+					"min": 0.9276716868953442,
+					"max": 49.48421063135024,
+					"avg": 5.5660923022343995
+				},
+				{
+					"id": 117440546,
+					"type": "Usage",
+					"labelOrig": "Core 7 T1 Utility",
+					"labelUser": "Core 7 T1 Effizienz",
+					"unit": "%",
+					"value": 0.8749035631178416,
+					"min": 0.1066096591652094,
+					"max": 19.783975735490248,
+					"avg": 0.791046958693994
+				},
+				{
+					"id": 117440547,
+					"type": "Usage",
+					"labelOrig": "Total CPU Utility",
+					"labelUser": "Gesamte CPU-Auslastung",
+					"unit": "%",
+					"value": 7.919620885565374,
+					"min": 1.3637675575940027,
+					"max": 37.79394501286747,
+					"avg": 4.890283448800284
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Core 0 Ratio",
+					"labelUser": "Core 0 Verhältnis",
+					"unit": "x",
+					"value": 47,
+					"min": 30.5,
+					"max": 47.75,
+					"avg": 41.94997815640017
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Core 1 Ratio",
+					"labelUser": "Core 1 Verhältnis",
+					"unit": "x",
+					"value": 46.75,
+					"min": 31,
+					"max": 48.5,
+					"avg": 46.09829619921357
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Core 2 Ratio",
+					"labelUser": "Core 2 Verhältnis",
+					"unit": "x",
+					"value": 46.75,
+					"min": 30.166666666666668,
+					"max": 47.75,
+					"avg": 40.27691131498469
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Core 3 Ratio",
+					"labelUser": "Core 3 Verhältnis",
+					"unit": "x",
+					"value": 46.75,
+					"min": 31,
+					"max": 48.5,
+					"avg": 46.19517256443866
+				},
+				{
+					"id": 134217732,
+					"type": "Other",
+					"labelOrig": "Core 4 Ratio",
+					"labelUser": "Core 4 Verhältnis",
+					"unit": "x",
+					"value": 46.25,
+					"min": 31.333333333333332,
+					"max": 48.5,
+					"avg": 46.93359545653121
+				},
+				{
+					"id": 134217733,
+					"type": "Other",
+					"labelOrig": "Core 5 Ratio",
+					"labelUser": "Core 5 Verhältnis",
+					"unit": "x",
+					"value": 46.25,
+					"min": 31.166666666666668,
+					"max": 48.5,
+					"avg": 46.41207951070333
+				},
+				{
+					"id": 134217734,
+					"type": "Other",
+					"labelOrig": "Core 6 Ratio",
+					"labelUser": "Core 6 Verhältnis",
+					"unit": "x",
+					"value": 46.25,
+					"min": 30.166666666666668,
+					"max": 48,
+					"avg": 41.57284840541719
+				},
+				{
+					"id": 134217735,
+					"type": "Other",
+					"labelOrig": "Core 7 Ratio",
+					"labelUser": "Core 7 Verhältnis",
+					"unit": "x",
+					"value": 46.25,
+					"min": 30.833333333333332,
+					"max": 48.25,
+					"avg": 45.99148099606816
+				}
+			]
+		},
+		{
+			"id": 4026532610,
+			"instance": 0,
+			"nameOrig": "CPU [#0]: AMD Ryzen 7 7800X3D: C-State Residency",
+			"nameUser": "CPU [#0]: AMD Ryzen 7 7800X3D: C-State Belegung",
+			"readings": [
+				{
+					"id": 117440518,
+					"type": "Usage",
+					"labelOrig": "Package C6 Residency",
+					"labelUser": "Package C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440524,
+					"type": "Usage",
+					"labelOrig": "Core 0 C0 Residency",
+					"labelUser": "Core 0 C0 Belegung",
+					"unit": "%",
+					"value": 7.68027400970459,
+					"min": 1.5090011358261108,
+					"max": 36.913700103759766,
+					"avg": 6.10502732534396
+				},
+				{
+					"id": 117440526,
+					"type": "Usage",
+					"labelOrig": "Core 1 C0 Residency",
+					"labelUser": "Core 1 C0 Belegung",
+					"unit": "%",
+					"value": 38.979827880859375,
+					"min": 5.2245192527771,
+					"max": 93.89835357666016,
+					"avg": 20.539833143216747
+				},
+				{
+					"id": 117440528,
+					"type": "Usage",
+					"labelOrig": "Core 2 C0 Residency",
+					"labelUser": "Core 2 C0 Belegung",
+					"unit": "%",
+					"value": 2.561325788497925,
+					"min": 0.3479868769645691,
+					"max": 26.27345848083496,
+					"avg": 1.8599699928594922
+				},
+				{
+					"id": 117440530,
+					"type": "Usage",
+					"labelOrig": "Core 3 C0 Residency",
+					"labelUser": "Core 3 C0 Belegung",
+					"unit": "%",
+					"value": 34.3704719543457,
+					"min": 5.03403902053833,
+					"max": 94.54828643798828,
+					"avg": 20.74142365999332
+				},
+				{
+					"id": 117440532,
+					"type": "Usage",
+					"labelOrig": "Core 4 C0 Residency",
+					"labelUser": "Core 4 C0 Belegung",
+					"unit": "%",
+					"value": 8.319893836975098,
+					"min": 1.4731746912002563,
+					"max": 52.35211944580078,
+					"avg": 5.261978108167338
+				},
+				{
+					"id": 117440534,
+					"type": "Usage",
+					"labelOrig": "Core 5 C0 Residency",
+					"labelUser": "Core 5 C0 Belegung",
+					"unit": "%",
+					"value": 18.693115234375,
+					"min": 1.872924566268921,
+					"max": 64.72933959960938,
+					"avg": 9.169033999211823
+				},
+				{
+					"id": 117440536,
+					"type": "Usage",
+					"labelOrig": "Core 6 C0 Residency",
+					"labelUser": "Core 6 C0 Belegung",
+					"unit": "%",
+					"value": 1.0876474380493164,
+					"min": 0.172114759683609,
+					"max": 99.71593475341797,
+					"avg": 3.112134886385574
+				},
+				{
+					"id": 117440538,
+					"type": "Usage",
+					"labelOrig": "Core 7 C0 Residency",
+					"labelUser": "Core 7 C0 Belegung",
+					"unit": "%",
+					"value": 11.854132652282715,
+					"min": 1.3713451623916626,
+					"max": 52.28053283691406,
+					"avg": 6.074294000434372
+				},
+				{
+					"id": 117440540,
+					"type": "Usage",
+					"labelOrig": "Core 0 C1 Residency",
+					"labelUser": "Core 0 C1 Belegung",
+					"unit": "%",
+					"value": 92.31967163085938,
+					"min": 12.49653148651123,
+					"max": 95.62435150146484,
+					"avg": 70.49297876845493
+				},
+				{
+					"id": 117440541,
+					"type": "Usage",
+					"labelOrig": "Core 1 C1 Residency",
+					"labelUser": "Core 1 C1 Belegung",
+					"unit": "%",
+					"value": 61.02021408081055,
+					"min": 6.101639270782471,
+					"max": 94.77523803710938,
+					"avg": 79.46010708027708
+				},
+				{
+					"id": 117440542,
+					"type": "Usage",
+					"labelOrig": "Core 2 C1 Residency",
+					"labelUser": "Core 2 C1 Belegung",
+					"unit": "%",
+					"value": 31.44304656982422,
+					"min": 1.194776177406311,
+					"max": 80.60562133789062,
+					"avg": 8.986402525814297
+				},
+				{
+					"id": 117440543,
+					"type": "Usage",
+					"labelOrig": "Core 3 C1 Residency",
+					"labelUser": "Core 3 C1 Belegung",
+					"unit": "%",
+					"value": 65.62948608398438,
+					"min": 5.451725482940674,
+					"max": 94.96583557128906,
+					"avg": 79.25855486171113
+				},
+				{
+					"id": 117440544,
+					"type": "Usage",
+					"labelOrig": "Core 4 C1 Residency",
+					"labelUser": "Core 4 C1 Belegung",
+					"unit": "%",
+					"value": 91.68011474609375,
+					"min": 47.64788818359375,
+					"max": 98.52677917480469,
+					"avg": 94.73799490772413
+				},
+				{
+					"id": 117440545,
+					"type": "Usage",
+					"labelOrig": "Core 5 C1 Residency",
+					"labelUser": "Core 5 C1 Belegung",
+					"unit": "%",
+					"value": 81.30693054199219,
+					"min": 35.27068328857422,
+					"max": 98.12699127197266,
+					"avg": 90.82533653629255
+				},
+				{
+					"id": 117440546,
+					"type": "Usage",
+					"labelOrig": "Core 6 C1 Residency",
+					"labelUser": "Core 6 C1 Belegung",
+					"unit": "%",
+					"value": 53.49085998535156,
+					"min": 0.2840728163719177,
+					"max": 98.89119720458984,
+					"avg": 17.550015697004266
+				},
+				{
+					"id": 117440547,
+					"type": "Usage",
+					"labelOrig": "Core 7 C1 Residency",
+					"labelUser": "Core 7 C1 Belegung",
+					"unit": "%",
+					"value": 88.14583587646484,
+					"min": 47.719486236572266,
+					"max": 98.56571197509766,
+					"avg": 93.56955944476239
+				},
+				{
+					"id": 117440580,
+					"type": "Usage",
+					"labelOrig": "Core 0 C6 Residency",
+					"labelUser": "Core 0 C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 85.83646392822266,
+					"avg": 23.402123623162634
+				},
+				{
+					"id": 117440581,
+					"type": "Usage",
+					"labelOrig": "Core 1 C6 Residency",
+					"labelUser": "Core 1 C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440582,
+					"type": "Usage",
+					"labelOrig": "Core 2 C6 Residency",
+					"labelUser": "Core 2 C6 Belegung",
+					"unit": "%",
+					"value": 65.9959487915039,
+					"min": 6.55058479309082,
+					"max": 98.37417602539062,
+					"avg": 89.15404121528911
+				},
+				{
+					"id": 117440583,
+					"type": "Usage",
+					"labelOrig": "Core 3 C6 Residency",
+					"labelUser": "Core 3 C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440584,
+					"type": "Usage",
+					"labelOrig": "Core 4 C6 Residency",
+					"labelUser": "Core 4 C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440585,
+					"type": "Usage",
+					"labelOrig": "Core 5 C6 Residency",
+					"labelUser": "Core 5 C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 1.948981523513794,
+					"avg": 0.005598366433854654
+				},
+				{
+					"id": 117440586,
+					"type": "Usage",
+					"labelOrig": "Core 6 C6 Residency",
+					"labelUser": "Core 6 C6 Belegung",
+					"unit": "%",
+					"value": 45.42171859741211,
+					"min": 0,
+					"max": 99.02806854248047,
+					"avg": 79.33809462720887
+				},
+				{
+					"id": 117440587,
+					"type": "Usage",
+					"labelOrig": "Core 7 C6 Residency",
+					"labelUser": "Core 7 C6 Belegung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 16.73712158203125,
+					"avg": 0.35613001712572256
+				}
+			]
+		},
+		{
+			"id": 4026532609,
+			"instance": 1,
+			"nameOrig": "Memory Timings",
+			"nameUser": "Speicher-Timings",
+			"readings": [
+				{
+					"id": 100663296,
+					"type": "Clock",
+					"labelOrig": "Memory Clock",
+					"labelUser": "Speicher-Takt",
+					"unit": "MHz",
+					"value": 3000,
+					"min": 3000,
+					"max": 3000,
+					"avg": 3000
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Memory Clock Ratio",
+					"labelUser": "Speichertakt-Multiplikator",
+					"unit": "x",
+					"value": 30,
+					"min": 30,
+					"max": 30,
+					"avg": 30
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Tcas",
+					"unit": "T",
+					"value": 30,
+					"min": 30,
+					"max": 30,
+					"avg": 30
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Trcd",
+					"unit": "T",
+					"value": 38,
+					"min": 38,
+					"max": 38,
+					"avg": 38
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Trp",
+					"unit": "T",
+					"value": 38,
+					"min": 38,
+					"max": 38,
+					"avg": 38
+				},
+				{
+					"id": 134217732,
+					"type": "Other",
+					"labelOrig": "Tras",
+					"unit": "T",
+					"value": 96,
+					"min": 96,
+					"max": 96,
+					"avg": 96
+				},
+				{
+					"id": 134217733,
+					"type": "Other",
+					"labelOrig": "Trc",
+					"unit": "T",
+					"value": 134,
+					"min": 134,
+					"max": 134,
+					"avg": 134
+				},
+				{
+					"id": 134217734,
+					"type": "Other",
+					"labelOrig": "Trfc",
+					"unit": "T",
+					"value": 884,
+					"min": 884,
+					"max": 884,
+					"avg": 884
+				},
+				{
+					"id": 134217735,
+					"type": "Other",
+					"labelOrig": "Command Rate",
+					"unit": "T",
+					"value": 1,
+					"min": 1,
+					"max": 1,
+					"avg": 1
+				}
+			]
+		},
+		{
+			"id": 4026533121,
+			"instance": 0,
+			"nameOrig": "CPU [#0]: AMD Ryzen 7 7800X3D: Enhanced",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "CPU (Tctl/Tdie)",
+					"unit": "°C",
+					"value": 57.625,
+					"min": 54.25,
+					"max": 72.75,
+					"avg": 57.5833879423329
+				},
+				{
+					"id": 16777219,
+					"type": "Temp",
+					"labelOrig": "CPU Die (average)",
+					"labelUser": "CPU-Gehäuse (Durchschnitt)",
+					"unit": "°C",
+					"value": 54.0103645324707,
+					"min": 52.40808868408203,
+					"max": 69.5221176147461,
+					"avg": 53.960907217403225
+				},
+				{
+					"id": 16777224,
+					"type": "Temp",
+					"labelOrig": "CPU CCD1 (Tdie)",
+					"unit": "°C",
+					"value": 60,
+					"min": 48.375,
+					"max": 67.125,
+					"avg": 50.730176933158575
+				},
+				{
+					"id": 16777344,
+					"type": "Temp",
+					"labelOrig": "Core0 (CCD1)",
+					"unit": "°C",
+					"value": 41.34981918334961,
+					"min": 38.836055755615234,
+					"max": 49.916778564453125,
+					"avg": 40.20024883825227
+				},
+				{
+					"id": 16777345,
+					"type": "Temp",
+					"labelOrig": "Core1 (CCD1)",
+					"unit": "°C",
+					"value": 48.12310028076172,
+					"min": 40.79909133911133,
+					"max": 64.99874877929688,
+					"avg": 44.040686761098684
+				},
+				{
+					"id": 16777346,
+					"type": "Temp",
+					"labelOrig": "Core2 (CCD1)",
+					"unit": "°C",
+					"value": 39.59068298339844,
+					"min": 37.74290084838867,
+					"max": 49.185359954833984,
+					"avg": 38.73658195985568
+				},
+				{
+					"id": 16777347,
+					"type": "Temp",
+					"labelOrig": "Core3 (CCD1)",
+					"unit": "°C",
+					"value": 46.79094696044922,
+					"min": 40.446224212646484,
+					"max": 65.44671630859375,
+					"avg": 43.978095303356724
+				},
+				{
+					"id": 16777348,
+					"type": "Temp",
+					"labelOrig": "Core4 (CCD1)",
+					"unit": "°C",
+					"value": 41.392539978027344,
+					"min": 38.81241226196289,
+					"max": 53.98167037963867,
+					"avg": 40.18426892141837
+				},
+				{
+					"id": 16777349,
+					"type": "Temp",
+					"labelOrig": "Core5 (CCD1)",
+					"unit": "°C",
+					"value": 44.40109634399414,
+					"min": 39.9755973815918,
+					"max": 58.518272399902344,
+					"avg": 42.017903969141
+				},
+				{
+					"id": 16777350,
+					"type": "Temp",
+					"labelOrig": "Core6 (CCD1)",
+					"unit": "°C",
+					"value": 39.67449188232422,
+					"min": 37.66019821166992,
+					"max": 66.0835952758789,
+					"avg": 39.13449002687143
+				},
+				{
+					"id": 16777351,
+					"type": "Temp",
+					"labelOrig": "Core7 (CCD1)",
+					"unit": "°C",
+					"value": 43.41609191894531,
+					"min": 39.97063446044922,
+					"max": 54.90793228149414,
+					"avg": 41.55094887669716
+				},
+				{
+					"id": 16777440,
+					"type": "Temp",
+					"labelOrig": "L3 Cache (CCD1)",
+					"unit": "°C",
+					"value": 42.0068473815918,
+					"min": 41.040897369384766,
+					"max": 44.184383392333984,
+					"avg": 41.63051323746948
+				},
+				{
+					"id": 16777464,
+					"type": "Temp",
+					"labelOrig": "CPU IOD Hotspot",
+					"unit": "°C",
+					"value": 52.75,
+					"min": 51.5,
+					"max": 54,
+					"avg": 52.62614678899082
+				},
+				{
+					"id": 16777465,
+					"type": "Temp",
+					"labelOrig": "CPU IOD Average",
+					"labelUser": "CPU-IOD-Durchschnitt",
+					"unit": "°C",
+					"value": 48.33974358974359,
+					"min": 47.31410256410256,
+					"max": 48.69871794871795,
+					"avg": 47.95195248176896
+				},
+				{
+					"id": 33554432,
+					"type": "Volt",
+					"labelOrig": "CPU VDDCR_VDD Voltage (SVI3 TFN)",
+					"labelUser": "CPU VDDCR_VDD Spannung (SVI3 TFN)",
+					"unit": "V",
+					"value": 1.1115425825119019,
+					"min": 1.0694206953048706,
+					"max": 1.1457797288894653,
+					"avg": 1.1263121616481022
+				},
+				{
+					"id": 33554433,
+					"type": "Volt",
+					"labelOrig": "CPU VDDCR_SOC Voltage (SVI3 TFN)",
+					"labelUser": "CPU VDDCR_SOC Spannung (SVI3 TFN)",
+					"unit": "V",
+					"value": 1.3014156818389893,
+					"min": 1.3007996082305908,
+					"max": 1.302147626876831,
+					"avg": 1.3014412609027857
+				},
+				{
+					"id": 33554435,
+					"type": "Volt",
+					"labelOrig": "CPU VDD_MISC Voltage (SVI3 TFN)",
+					"labelUser": "CPU VDD_MISC Spannung (SVI3 TFN)",
+					"unit": "V",
+					"value": 1.0990391969680786,
+					"min": 1.0971922874450684,
+					"max": 1.0996583700180054,
+					"avg": 1.0987627206279895
+				},
+				{
+					"id": 67108864,
+					"type": "Current",
+					"labelOrig": "CPU Core Current (SVI3 TFN)",
+					"labelUser": "CPU-Kern-Strom (SVI3 TFN)",
+					"unit": "A",
+					"value": 3.8395302295684814,
+					"min": 0.5109453201293945,
+					"max": 18.50389862060547,
+					"avg": 2.160660193288308
+				},
+				{
+					"id": 67108865,
+					"type": "Current",
+					"labelOrig": "SoC Current (SVI3 TFN)",
+					"labelUser": "SoC-Strom (SVI3 TFN)",
+					"unit": "A",
+					"value": 13.643835067749023,
+					"min": 12.44611644744873,
+					"max": 13.968547821044922,
+					"avg": 12.868798429656623
+				},
+				{
+					"id": 67108866,
+					"type": "Current",
+					"labelOrig": "CPU TDC",
+					"unit": "A",
+					"value": 3.848501205444336,
+					"min": 0.5115750432014465,
+					"max": 18.526445388793945,
+					"avg": 2.160687029674203
+				},
+				{
+					"id": 67108867,
+					"type": "Current",
+					"labelOrig": "CPU EDC",
+					"unit": "A",
+					"value": 4.401350898742676,
+					"min": 0.5234330749511719,
+					"max": 26.98758934020996,
+					"avg": 2.534399111494325
+				},
+				{
+					"id": 67108868,
+					"type": "Current",
+					"labelOrig": "MISC Current (SVI3 TFN)",
+					"labelUser": "MISC-Strom (SVI3 TFN)",
+					"unit": "A",
+					"value": 5.861729621887207,
+					"min": 5.070103168487549,
+					"max": 5.8833088874816895,
+					"avg": 5.329318930874652
+				},
+				{
+					"id": 83886080,
+					"type": "Power",
+					"labelOrig": "CPU Package Power",
+					"labelUser": "CPU-Gesamt-Leistungsaufnahme",
+					"unit": "W",
+					"value": 35.896746999968435,
+					"min": 29.628383080975407,
+					"max": 49.88041319342297,
+					"avg": 32.32806817938043
+				},
+				{
+					"id": 83886081,
+					"type": "Power",
+					"labelOrig": "Core 0 Power",
+					"labelUser": "Core 0 Energieverbrauch",
+					"unit": "W",
+					"value": 1.094588041305542,
+					"min": 0.08703087270259857,
+					"max": 2.4730963706970215,
+					"avg": 0.6770231318934719
+				},
+				{
+					"id": 83886082,
+					"type": "Power",
+					"labelOrig": "Core 1 Power",
+					"labelUser": "Core 1 Energieverbrauch",
+					"unit": "W",
+					"value": 3.0898494673613377,
+					"min": 0.8853246974465389,
+					"max": 4.894638228014744,
+					"avg": 1.679557033718263
+				},
+				{
+					"id": 83886083,
+					"type": "Power",
+					"labelOrig": "Core 2 Power",
+					"labelUser": "Core 2 Energieverbrauch",
+					"unit": "W",
+					"value": 0.3242782846903234,
+					"min": 0.02235109075654285,
+					"max": 2.098788992376596,
+					"avg": 0.13294593063186555
+				},
+				{
+					"id": 83886084,
+					"type": "Power",
+					"labelOrig": "Core 3 Power",
+					"labelUser": "Core 3 Energieverbrauch",
+					"unit": "W",
+					"value": 2.8854279944717756,
+					"min": 0.8631448421612801,
+					"max": 6.82584079296995,
+					"avg": 1.6985939233093479
+				},
+				{
+					"id": 83886085,
+					"type": "Power",
+					"labelOrig": "Core 4 Power",
+					"labelUser": "Core 4 Energieverbrauch",
+					"unit": "W",
+					"value": 1.2925838043315554,
+					"min": 0.6877464543911563,
+					"max": 3.370993169349647,
+					"avg": 0.9693360722902072
+				},
+				{
+					"id": 83886086,
+					"type": "Power",
+					"labelOrig": "Core 5 Power",
+					"labelUser": "Core 5 Energieverbrauch",
+					"unit": "W",
+					"value": 2.10426024061539,
+					"min": 0.6819032684739589,
+					"max": 4.062143535263311,
+					"avg": 1.1939958632839671
+				},
+				{
+					"id": 83886087,
+					"type": "Power",
+					"labelOrig": "Core 6 Power",
+					"labelUser": "Core 6 Energieverbrauch",
+					"unit": "W",
+					"value": 0.4526333969010672,
+					"min": 0.019379144745261596,
+					"max": 5.082716242792153,
+					"avg": 0.2788246813912492
+				},
+				{
+					"id": 83886088,
+					"type": "Power",
+					"labelOrig": "Core 7 Power",
+					"labelUser": "Core 7 Energieverbrauch",
+					"unit": "W",
+					"value": 1.619497104314699,
+					"min": 0.5659514590163004,
+					"max": 3.78394255612936,
+					"avg": 1.0073595857100763
+				},
+				{
+					"id": 83886089,
+					"type": "Power",
+					"labelOrig": "CPU Core Power (SVI3 TFN)",
+					"labelUser": "CPU Kern-Leistungsaufnahme (SVI3 TFN)",
+					"unit": "W",
+					"value": 4.257842063903809,
+					"min": 0.5754153728485107,
+					"max": 19.689130783081055,
+					"avg": 2.388850057187586
+				},
+				{
+					"id": 83886090,
+					"type": "Power",
+					"labelOrig": "CPU SoC Power (SVI3 TFN)",
+					"labelUser": "CPU-SoC-Leistungsaufnahme (SVI3 TFN)",
+					"unit": "W",
+					"value": 17.756038665771484,
+					"min": 16.197416305541992,
+					"max": 18.181846618652344,
+					"avg": 16.74770848685451
+				},
+				{
+					"id": 83886091,
+					"type": "Power",
+					"labelOrig": "Core+SoC+MISC Power (SVI3 TFN)",
+					"labelUser": "Core+SoC+MISC Energieverbrauch (SVI3 TFN)",
+					"unit": "W",
+					"value": 28.45621681213379,
+					"min": 22.37099266052246,
+					"max": 42.04051971435547,
+					"avg": 24.992312885049458
+				},
+				{
+					"id": 83886092,
+					"type": "Power",
+					"labelOrig": "CPU PPT",
+					"unit": "W",
+					"value": 35.04643630981445,
+					"min": 28.914155960083008,
+					"max": 48.70792007446289,
+					"avg": 31.553345696485525
+				},
+				{
+					"id": 100663296,
+					"type": "Clock",
+					"labelOrig": "Infinity Fabric Clock (FCLK)",
+					"labelUser": "Infinity Fabric Takt (FCLK)",
+					"unit": "MHz",
+					"value": 2000,
+					"min": 1999.9998779296875,
+					"max": 2000.0001220703125,
+					"avg": 2000.0000124790097
+				},
+				{
+					"id": 100663297,
+					"type": "Clock",
+					"labelOrig": "Memory Controller Clock (UCLK)",
+					"labelUser": "Takt des Speicher-Controllers (UCLK)",
+					"unit": "MHz",
+					"value": 3000,
+					"min": 2999.999755859375,
+					"max": 3000.000244140625,
+					"avg": 3000.0000137589104
+				},
+				{
+					"id": 100663300,
+					"type": "Clock",
+					"labelOrig": "L3 Cache (CCD1)",
+					"unit": "MHz",
+					"value": 4675.928115844727,
+					"min": 4561.60831451416,
+					"max": 4779.348850250244,
+					"avg": 4719.142687586315
+				},
+				{
+					"id": 100663333,
+					"type": "Clock",
+					"labelOrig": "Frequency Limit - Global",
+					"labelUser": "Frequenzgrenze - Global",
+					"unit": "MHz",
+					"value": 4682.368278503418,
+					"min": 4568.371772766113,
+					"max": 4814.30721282959,
+					"avg": 4734.274100507385
+				},
+				{
+					"id": 117440512,
+					"type": "Usage",
+					"labelOrig": "CPU PPT Limit",
+					"unit": "%",
+					"value": 3.5046434170749867,
+					"min": 2.891415419530309,
+					"max": 4.870791710156756,
+					"avg": 3.155334377062226
+				},
+				{
+					"id": 117440513,
+					"type": "Usage",
+					"labelOrig": "CPU TDC Limit",
+					"labelUser": "CPU-TDC-Limit",
+					"unit": "%",
+					"value": 1.6732612826630116,
+					"min": 0.22242391707054357,
+					"max": 8.054975721609647,
+					"avg": 0.9394290810124786
+				},
+				{
+					"id": 117440514,
+					"type": "Usage",
+					"labelOrig": "CPU EDC Limit",
+					"labelUser": "CPU-EDC-Limit",
+					"unit": "%",
+					"value": 0.7859555176326207,
+					"min": 0.09347019195556641,
+					"max": 4.81921238218035,
+					"avg": 0.452571269909701
+				},
+				{
+					"id": 117440515,
+					"type": "Usage",
+					"labelOrig": "CPU PPT FAST Limit",
+					"unit": "%",
+					"value": 3.504643440246582,
+					"min": 2.8914153575897217,
+					"max": 4.870791912078857,
+					"avg": 3.1553343789136905
+				},
+				{
+					"id": 117440523,
+					"type": "Usage",
+					"labelOrig": "Thermal Limit",
+					"unit": "%",
+					"value": 60.68580627441406,
+					"min": 58.885494232177734,
+					"max": 78.11473846435547,
+					"avg": 60.63023288971786
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Thermal Throttling (HTC)",
+					"labelUser": "Thermische Drosselung (HTC)",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Thermal Throttling (PROCHOT CPU)",
+					"labelUser": "Thermische Drosselung (PROCHOT CPU)",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Thermal Throttling (PROCHOT EXT)",
+					"labelUser": "Thermische Drosselung (PROCHOT EXT)",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217735,
+					"type": "Other",
+					"labelOrig": "DRAM Read Bandwidth",
+					"labelUser": "DRAM-Lesebandbreite",
+					"unit": "Gbps",
+					"value": 0.5837754607200623,
+					"min": 0.06860578805208206,
+					"max": 4.926407814025879,
+					"avg": 0.3644042179515758
+				},
+				{
+					"id": 134217736,
+					"type": "Other",
+					"labelOrig": "DRAM Write Bandwidth",
+					"labelUser": "DRAM-Schreibbandbreite",
+					"unit": "Gbps",
+					"value": 0.2260618656873703,
+					"min": 0.03394993022084236,
+					"max": 1.9684116840362549,
+					"avg": 0.14736842295230598
+				},
+				{
+					"id": 134217739,
+					"type": "Other",
+					"labelOrig": "Average Active Core Count",
+					"labelUser": "Durchschnittliche Anzahl aktiver Kerne",
+					"unit": "",
+					"value": 1.2354660034179688,
+					"min": 0.2171660214662552,
+					"max": 4.6430253982543945,
+					"avg": 0.7286367389040252
+				}
+			]
+		},
+		{
+			"id": 4143998599,
+			"instance": 0,
+			"nameOrig": "MSI MAG B650 TOMAHAWK WIFI (MS-7D75) (Nuvoton NCT6687D)",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "CPU",
+					"unit": "°C",
+					"value": 57,
+					"min": 54,
+					"max": 72,
+					"avg": 57.142857142857125
+				},
+				{
+					"id": 16777217,
+					"type": "Temp",
+					"labelOrig": "System",
+					"unit": "°C",
+					"value": 46,
+					"min": 45.5,
+					"max": 46.5,
+					"avg": 46.1127129750983
+				},
+				{
+					"id": 16777218,
+					"type": "Temp",
+					"labelOrig": "MOS",
+					"unit": "°C",
+					"value": 44,
+					"min": 43.5,
+					"max": 44.5,
+					"avg": 43.998689384010504
+				},
+				{
+					"id": 16777219,
+					"type": "Temp",
+					"labelOrig": "Chipset",
+					"labelUser": "Chipsatz",
+					"unit": "°C",
+					"value": 46,
+					"min": 46,
+					"max": 46,
+					"avg": 46
+				},
+				{
+					"id": 16777220,
+					"type": "Temp",
+					"labelOrig": "VR",
+					"unit": "°C",
+					"value": 43,
+					"min": 42.5,
+					"max": 43.5,
+					"avg": 42.93577981651377
+				},
+				{
+					"id": 16777221,
+					"type": "Temp",
+					"labelOrig": "T0",
+					"unit": "°C",
+					"value": 78,
+					"min": 76.5,
+					"max": 79,
+					"avg": 77.9462647444299
+				},
+				{
+					"id": 16777247,
+					"type": "Temp",
+					"labelOrig": "T15",
+					"unit": "°C",
+					"value": 44,
+					"min": 43.5,
+					"max": 44.5,
+					"avg": 43.99934469200526
+				},
+				{
+					"id": 33554448,
+					"type": "Volt",
+					"labelOrig": "+12V",
+					"unit": "V",
+					"value": 12.048,
+					"min": 12.048,
+					"max": 12.072,
+					"avg": 12.056083879423294
+				},
+				{
+					"id": 33554449,
+					"type": "Volt",
+					"labelOrig": "+5V",
+					"unit": "V",
+					"value": 5.03,
+					"min": 5.03,
+					"max": 5.04,
+					"avg": 5.030563564875559
+				},
+				{
+					"id": 33554450,
+					"type": "Volt",
+					"labelOrig": "CPU NB/SoC",
+					"unit": "V",
+					"value": 1.302,
+					"min": 1.3,
+					"max": 1.304,
+					"avg": 1.3009305373525568
+				},
+				{
+					"id": 33554451,
+					"type": "Volt",
+					"labelOrig": "CPU VDDIO",
+					"unit": "V",
+					"value": 1.344,
+					"min": 1.344,
+					"max": 1.344,
+					"avg": 1.3440000000000223
+				},
+				{
+					"id": 33554452,
+					"type": "Volt",
+					"labelOrig": "Vcore",
+					"unit": "V",
+					"value": 1.12,
+					"min": 1.052,
+					"max": 1.1580000000000001,
+					"avg": 1.1297038007863682
+				},
+				{
+					"id": 33554456,
+					"type": "Volt",
+					"labelOrig": "+3.3V",
+					"labelUser": "+3,3V",
+					"unit": "V",
+					"value": 3.2920000000000003,
+					"min": 3.2840000000000003,
+					"max": 3.2920000000000003,
+					"avg": 3.290437745740466
+				},
+				{
+					"id": 50331648,
+					"type": "Fan",
+					"labelOrig": "CPU",
+					"unit": "RPM",
+					"value": 972,
+					"min": 877,
+					"max": 1405,
+					"avg": 968.1808650065531
+				},
+				{
+					"id": 50331650,
+					"type": "Fan",
+					"labelOrig": "System 1",
+					"unit": "RPM",
+					"value": 730,
+					"min": 708,
+					"max": 737,
+					"avg": 724.7247706422023
+				},
+				{
+					"id": 50331651,
+					"type": "Fan",
+					"labelOrig": "System 2",
+					"unit": "RPM",
+					"value": 746,
+					"min": 729,
+					"max": 750,
+					"avg": 739.4167758846652
+				}
+			]
+		},
+		{
+			"id": 4060151814,
+			"instance": 0,
+			"nameOrig": "MSI MAG B650 TOMAHAWK WIFI (MS-7D75) (AMD Chipset)",
+			"nameUser": "MSI MAG B650 TOMAHAWK WIFI (MS-7D75) (AMD Chipsatz)",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "Chipset 1 (xHCI)",
+					"labelUser": "Chipsatz 1 (xHCI)",
+					"unit": "°C",
+					"value": 51.019800000000004,
+					"min": 51.019800000000004,
+					"max": 51.019800000000004,
+					"avg": 51.01979999999954
+				}
+			]
+		},
+		{
+			"id": 4110418214,
+			"instance": 0,
+			"nameOrig": "NUC126",
+			"readings": [
+				{
+					"id": 33554432,
+					"type": "Volt",
+					"labelOrig": "VDD MISC",
+					"unit": "V",
+					"value": 1.098,
+					"min": 1.094,
+					"max": 1.102,
+					"avg": 1.097753604193961
+				},
+				{
+					"id": 33554433,
+					"type": "Volt",
+					"labelOrig": "CPU +1.8V",
+					"labelUser": "CPU +1,8V",
+					"unit": "V",
+					"value": 1.81,
+					"min": 1.805,
+					"max": 1.814,
+					"avg": 1.8097234600261842
+				},
+				{
+					"id": 33554434,
+					"type": "Volt",
+					"labelOrig": "Chipset Core",
+					"labelUser": "Chipsatz Core",
+					"unit": "V",
+					"value": 1.051,
+					"min": 1.049,
+					"max": 1.051,
+					"avg": 1.0502621231978966
+				}
+			]
+		},
+		{
+			"id": 4076863493,
+			"instance": 1,
+			"nameOrig": "DDR5 DIMM [#1] (P0 CHANNEL A/DIMMA2)",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "SPD Hub Temperature",
+					"labelUser": "SPD Hub Temperatur",
+					"unit": "°C",
+					"value": 42.25,
+					"min": 42,
+					"max": 42.5,
+					"avg": 42.31979030144166
+				},
+				{
+					"id": 33554433,
+					"type": "Volt",
+					"labelOrig": "VDD (SWA) Voltage",
+					"labelUser": "VDD (SWA) Spannung",
+					"unit": "V",
+					"value": 1.335,
+					"min": 1.335,
+					"max": 1.3499999999999999,
+					"avg": 1.3447509829620083
+				},
+				{
+					"id": 33554435,
+					"type": "Volt",
+					"labelOrig": "VDDQ (SWB) Voltage",
+					"labelUser": "VDDQ (SWB) Spannung",
+					"unit": "V",
+					"value": 1.365,
+					"min": 1.3499999999999999,
+					"max": 1.38,
+					"avg": 1.36690694626475
+				},
+				{
+					"id": 33554437,
+					"type": "Volt",
+					"labelOrig": "VPP (SWC) Voltage",
+					"labelUser": "VPP (SWC) Spannung",
+					"unit": "V",
+					"value": 1.845,
+					"min": 1.8299999999999998,
+					"max": 1.845,
+					"avg": 1.838846657929235
+				},
+				{
+					"id": 33554439,
+					"type": "Volt",
+					"labelOrig": "1.8V Voltage",
+					"labelUser": "1,8V Spannung",
+					"unit": "V",
+					"value": 1.7999999999999998,
+					"min": 1.785,
+					"max": 1.815,
+					"avg": 1.800058977719503
+				},
+				{
+					"id": 33554441,
+					"type": "Volt",
+					"labelOrig": "1.0V VOUT Voltage",
+					"labelUser": "1.0V VOUT Spannung",
+					"unit": "V",
+					"value": 1.02,
+					"min": 0.99,
+					"max": 1.02,
+					"avg": 1.0084010484927894
+				},
+				{
+					"id": 33554443,
+					"type": "Volt",
+					"labelOrig": "VIN Voltage",
+					"labelUser": "VIN Spannung",
+					"unit": "V",
+					"value": 4.69,
+					"min": 4.69,
+					"max": 8.4,
+					"avg": 5.025412844036728
+				},
+				{
+					"id": 83886083,
+					"type": "Power",
+					"labelOrig": "Total Power",
+					"labelUser": "Gesamtleistung",
+					"unit": "W",
+					"value": 0.5,
+					"min": 0.375,
+					"max": 3,
+					"avg": 0.5627457404980343
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "PMIC High Temperature",
+					"labelUser": "PMIC hohe Temperatur",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				}
+			]
+		},
+		{
+			"id": 4076863493,
+			"instance": 3,
+			"nameOrig": "DDR5 DIMM [#3] (P0 CHANNEL B/DIMMB2)",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "SPD Hub Temperature",
+					"labelUser": "SPD Hub Temperatur",
+					"unit": "°C",
+					"value": 41,
+					"min": 41,
+					"max": 41.5,
+					"avg": 41.21297509829618
+				},
+				{
+					"id": 33554433,
+					"type": "Volt",
+					"labelOrig": "VDD (SWA) Voltage",
+					"labelUser": "VDD (SWA) Spannung",
+					"unit": "V",
+					"value": 1.3499999999999999,
+					"min": 1.005,
+					"max": 1.8599999999999999,
+					"avg": 1.2765727391874324
+				},
+				{
+					"id": 33554435,
+					"type": "Volt",
+					"labelOrig": "VDDQ (SWB) Voltage",
+					"labelUser": "VDDQ (SWB) Spannung",
+					"unit": "V",
+					"value": 1.365,
+					"min": 1.08,
+					"max": 1.38,
+					"avg": 1.3636238532110154
+				},
+				{
+					"id": 33554437,
+					"type": "Volt",
+					"labelOrig": "VPP (SWC) Voltage",
+					"labelUser": "VPP (SWC) Spannung",
+					"unit": "V",
+					"value": 1.8599999999999999,
+					"min": 1.08,
+					"max": 1.875,
+					"avg": 1.7116513761467833
+				},
+				{
+					"id": 33554439,
+					"type": "Volt",
+					"labelOrig": "1.8V Voltage",
+					"labelUser": "1,8V Spannung",
+					"unit": "V",
+					"value": 1.7999999999999998,
+					"min": 1.3499999999999999,
+					"max": 1.875,
+					"avg": 1.8008846657928985
+				},
+				{
+					"id": 33554441,
+					"type": "Volt",
+					"labelOrig": "1.0V VOUT Voltage",
+					"labelUser": "1.0V VOUT Spannung",
+					"unit": "V",
+					"value": 1.005,
+					"min": 0.99,
+					"max": 1.7999999999999998,
+					"avg": 1.041310615989512
+				},
+				{
+					"id": 33554443,
+					"type": "Volt",
+					"labelOrig": "VIN Voltage",
+					"labelUser": "VIN Spannung",
+					"unit": "V",
+					"value": 5.040000000000001,
+					"min": 4.62,
+					"max": 8.680000000000001,
+					"avg": 4.869174311926602
+				},
+				{
+					"id": 83886083,
+					"type": "Power",
+					"labelOrig": "Total Power",
+					"labelUser": "Gesamtleistung",
+					"unit": "W",
+					"value": 0.625,
+					"min": 0.375,
+					"max": 2.125,
+					"avg": 0.5584862385321098
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "PMIC High Temperature",
+					"labelUser": "PMIC hohe Temperatur",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				}
+			]
+		},
+		{
+			"id": 4026532096,
+			"instance": 0,
+			"nameOrig": "S.M.A.R.T.: Samsung SSD 990 PRO 2TB (XXXXXXXXXXXXXXX)",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "Drive Temperature",
+					"labelUser": "Festplatten-Temperatur",
+					"unit": "°C",
+					"value": 48,
+					"min": 48,
+					"max": 48,
+					"avg": 48
+				},
+				{
+					"id": 16777217,
+					"type": "Temp",
+					"labelOrig": "Drive Temperature 2",
+					"labelUser": "Festplatten-Temperatur 2",
+					"unit": "°C",
+					"value": 48,
+					"min": 48,
+					"max": 48,
+					"avg": 48
+				},
+				{
+					"id": 16777218,
+					"type": "Temp",
+					"labelOrig": "Drive Temperature 3",
+					"labelUser": "Festplatten-Temperatur 3",
+					"unit": "°C",
+					"value": 53,
+					"min": 53,
+					"max": 56,
+					"avg": 54.56618610747049
+				},
+				{
+					"id": 117440512,
+					"type": "Usage",
+					"labelOrig": "Drive Remaining Life",
+					"labelUser": "Verbleibende Lebensdauer der Festplatte",
+					"unit": "%",
+					"value": 99,
+					"min": 99,
+					"max": 99,
+					"avg": 99
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Drive Failure",
+					"labelUser": "Festplatten-Fehler",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Drive Warning",
+					"labelUser": "Festplatten-Warnung",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Total Host Writes",
+					"labelUser": "Host-Schreibvorgänge insgesamt",
+					"unit": "GB",
+					"value": 42732,
+					"min": 42731,
+					"max": 42732,
+					"avg": 42731.87024901705
+				},
+				{
+					"id": 134217732,
+					"type": "Other",
+					"labelOrig": "Total Host Reads",
+					"labelUser": "Host-Lesevorgänge insgesamt",
+					"unit": "GB",
+					"value": 81916,
+					"min": 81916,
+					"max": 81916,
+					"avg": 81916
+				}
+			]
+		},
+		{
+			"id": 4026532097,
+			"instance": 0,
+			"nameOrig": "Drive: Samsung SSD 990 PRO 2TB (XXXXXXXXXXXXXXX)",
+			"readings": [
+				{
+					"id": 117440512,
+					"type": "Usage",
+					"labelOrig": "Read Activity",
+					"labelUser": "Lese-Aktivität",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 7.004,
+					"avg": 0.08438663171690691
+				},
+				{
+					"id": 117440513,
+					"type": "Usage",
+					"labelOrig": "Write Activity",
+					"labelUser": "Schreib-Aktivität",
+					"unit": "%",
+					"value": 0.095,
+					"min": 0,
+					"max": 4.725,
+					"avg": 0.10829095674967282
+				},
+				{
+					"id": 117440514,
+					"type": "Usage",
+					"labelOrig": "Total Activity",
+					"labelUser": "Gesamt-Aktivität",
+					"unit": "%",
+					"value": 0.095,
+					"min": 0,
+					"max": 10.569,
+					"avg": 0.19285321100917452
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Read Rate",
+					"labelUser": "Leserate",
+					"unit": "MB/s",
+					"value": 0,
+					"min": 0,
+					"max": 41.105,
+					"avg": 0.23479292267365653
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Write Rate",
+					"labelUser": "Schreibrate",
+					"unit": "MB/s",
+					"value": 0.334,
+					"min": 0,
+					"max": 67.676,
+					"avg": 0.9161664482306682
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Read Total",
+					"labelUser": "Summe gelesen",
+					"unit": "MB",
+					"value": 14354,
+					"min": 14009,
+					"max": 14354,
+					"avg": 14257.812581913497
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Write Total",
+					"labelUser": "Summe geschrieben",
+					"unit": "MB",
+					"value": 8667,
+					"min": 7370,
+					"max": 8667,
+					"avg": 8225.680209698561
+				}
+			]
+		},
+		{
+			"id": 3758102528,
+			"instance": 32,
+			"nameOrig": "GPU [#1]: AMD Radeon: ",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "GPU Temperature",
+					"labelUser": "GPU-Temperatur",
+					"unit": "°C",
+					"value": 50.457801818847656,
+					"min": 49.9993782043457,
+					"max": 50.730133056640625,
+					"avg": 50.27401689901884
+				},
+				{
+					"id": 117440512,
+					"type": "Usage",
+					"labelOrig": "GPU Utilization",
+					"labelUser": "GPU-Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "PCIe Link Speed",
+					"labelUser": "PCIe-Link-Geschwindigkeit",
+					"unit": "GT/s",
+					"value": 16,
+					"min": 16,
+					"max": 16,
+					"avg": 16
+				}
+			]
+		},
+		{
+			"id": 3758104576,
+			"instance": 0,
+			"nameOrig": "GPU [#0]: NVIDIA GeForce RTX 4080: ",
+			"readings": [
+				{
+					"id": 16777216,
+					"type": "Temp",
+					"labelOrig": "GPU Temperature",
+					"labelUser": "GPU-Temperatur",
+					"unit": "°C",
+					"value": 51.05078125,
+					"min": 48.91015625,
+					"max": 51.97265625,
+					"avg": 49.728482347640885
+				},
+				{
+					"id": 16777220,
+					"type": "Temp",
+					"labelOrig": "GPU Memory Junction Temperature",
+					"labelUser": "GPU-Speicher-Junction-Temperatur",
+					"unit": "°C",
+					"value": 58,
+					"min": 54,
+					"max": 60,
+					"avg": 56.70773263433812
+				},
+				{
+					"id": 16777221,
+					"type": "Temp",
+					"labelOrig": "GPU Hot Spot Temperature",
+					"labelUser": "GPU-Hot-Spot-Temperatur",
+					"unit": "°C",
+					"value": 62.96875,
+					"min": 61.59375,
+					"max": 64.5,
+					"avg": 62.46133682830931
+				},
+				{
+					"id": 16777280,
+					"type": "Temp",
+					"labelOrig": "GPU Thermal Limit",
+					"labelUser": "Thermisches GPU-Limit",
+					"unit": "°C",
+					"value": 84,
+					"min": 84,
+					"max": 84,
+					"avg": 84
+				},
+				{
+					"id": 33554432,
+					"type": "Volt",
+					"labelOrig": "GPU Core Voltage",
+					"labelUser": "GPU-Kern-Spannung",
+					"unit": "V",
+					"value": 1,
+					"min": 0.925,
+					"max": 1,
+					"avg": 0.9269659239842665
+				},
+				{
+					"id": 33554436,
+					"type": "Volt",
+					"labelOrig": "GPU FBVDDQ Input Voltage",
+					"labelUser": "GPU FBVDDQ Eingangsspannung",
+					"unit": "V",
+					"value": 12.181164,
+					"min": 12.16968,
+					"max": 12.221995,
+					"avg": 12.195711875491476
+				},
+				{
+					"id": 33554437,
+					"type": "Volt",
+					"labelOrig": "GPU PCIe +12V Input Voltage",
+					"labelUser": "GPU PCIe +12V Eingangsspannung",
+					"unit": "V",
+					"value": 12.19073,
+					"min": 12.178566,
+					"max": 12.2386,
+					"avg": 12.216736754914777
+				},
+				{
+					"id": 33554438,
+					"type": "Volt",
+					"labelOrig": "GPU 16-pin HVPWR Voltage",
+					"labelUser": "GPU 16-pin HVPWR Spannung",
+					"unit": "V",
+					"value": 12.186631,
+					"min": 12.166269,
+					"max": 12.207348,
+					"avg": 12.186180971166443
+				},
+				{
+					"id": 50331648,
+					"type": "Fan",
+					"labelOrig": "GPU Fan1",
+					"labelUser": "GPU Lüfter1",
+					"unit": "RPM",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 50331649,
+					"type": "Fan",
+					"labelOrig": "GPU Fan2",
+					"labelUser": "GPU Lüfter2",
+					"unit": "RPM",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 83886080,
+					"type": "Power",
+					"labelOrig": "GPU Power",
+					"labelUser": "GPU Energieverbrauch",
+					"unit": "W",
+					"value": 55.255,
+					"min": 20.25,
+					"max": 58.252,
+					"avg": 26.354541284403744
+				},
+				{
+					"id": 83886082,
+					"type": "Power",
+					"labelOrig": "GPU Core (NVVDD) Input Power (sum)",
+					"labelUser": "GPU Core (NVVDD) Eingang Energieverbrauch (sum)",
+					"unit": "W",
+					"value": 29.815999934999997,
+					"min": 9.683000108000002,
+					"max": 31.642999652000004,
+					"avg": 12.642069436583226
+				},
+				{
+					"id": 83886084,
+					"type": "Power",
+					"labelOrig": "GPU FBVDDQ Input Power",
+					"labelUser": "GPU FBVDDQ Eingang Energieverbrauch",
+					"unit": "W",
+					"value": 19.026978168000003,
+					"min": 8.089263,
+					"max": 19.399400816,
+					"avg": 10.14623624263564
+				},
+				{
+					"id": 83886085,
+					"type": "Power",
+					"labelOrig": "GPU PCIe +12V Input Power",
+					"labelUser": "GPU PCIe +12V Eingang Energieverbrauch",
+					"unit": "W",
+					"value": 6.36356106,
+					"min": 2.233573926,
+					"max": 6.36356106,
+					"avg": 3.518295798134991
+				},
+				{
+					"id": 83886086,
+					"type": "Power",
+					"labelOrig": "GPU 16-pin HVPWR Power",
+					"labelUser": "GPU 16-pin HVPWR Energieverbrauch",
+					"unit": "W",
+					"value": 48.831830417,
+					"min": 17.88573843,
+					"max": 50.867004096,
+					"avg": 22.784401070984284
+				},
+				{
+					"id": 83886092,
+					"type": "Power",
+					"labelOrig": "GPU Misc0 Input Power (sum)",
+					"labelUser": "GPU Misc0 Eingang Energieverbrauch (sum)",
+					"unit": "W",
+					"value": 6.375000168000001,
+					"min": 2.237000052,
+					"max": 6.375000168000001,
+					"avg": 3.5240995967404953
+				},
+				{
+					"id": 83886093,
+					"type": "Power",
+					"labelOrig": "GPU Input PP Source Power (sum)",
+					"labelUser": "GPU-Eingangs-PP-Quelle Energieverbrauch (sum)",
+					"unit": "W",
+					"value": 25.390999604,
+					"min": 10.330000142,
+					"max": 25.613000604000003,
+					"avg": 13.66869726305371
+				},
+				{
+					"id": 83886099,
+					"type": "Power",
+					"labelOrig": "GPU Core (NVVDD) Output Power",
+					"labelUser": "GPU Core (NVVDD) Ausgabe Energieverbrauch",
+					"unit": "W",
+					"value": 21.82047,
+					"min": 13.45892,
+					"max": 28.3598,
+					"avg": 14.20787045871559
+				},
+				{
+					"id": 83886100,
+					"type": "Power",
+					"labelOrig": "GPU Core (NVVDD) Output Power",
+					"labelUser": "GPU Core (NVVDD) Ausgabe Energieverbrauch",
+					"unit": "W",
+					"value": 21.251055,
+					"min": 13.76133,
+					"max": 21.874265,
+					"avg": 14.312256061598971
+				},
+				{
+					"id": 100663296,
+					"type": "Clock",
+					"labelOrig": "GPU Clock",
+					"labelUser": "GPU-Takt",
+					"unit": "MHz",
+					"value": 2595,
+					"min": 210,
+					"max": 2595,
+					"avg": 286.04193971166416
+				},
+				{
+					"id": 100663300,
+					"type": "Clock",
+					"labelOrig": "GPU Memory Clock",
+					"labelUser": "GPU-Speicher-Takt",
+					"unit": "MHz",
+					"value": 2800.4915,
+					"min": 101.25,
+					"max": 2800.4915,
+					"avg": 510.45844823066955
+				},
+				{
+					"id": 100663301,
+					"type": "Clock",
+					"labelOrig": "GPU Video Clock",
+					"labelUser": "GPU-Videotakt",
+					"unit": "MHz",
+					"value": 2070,
+					"min": 1185,
+					"max": 2070,
+					"avg": 1225.2621231979042
+				},
+				{
+					"id": 100663302,
+					"type": "Clock",
+					"labelOrig": "GPU Effective Clock",
+					"labelUser": "GPU Effektiver Takt",
+					"unit": "MHz",
+					"value": 2594.886,
+					"min": 209.994,
+					"max": 2594.944,
+					"avg": 294.52311402359317
+				},
+				{
+					"id": 117440512,
+					"type": "Usage",
+					"labelOrig": "GPU Core Load",
+					"labelUser": "GPU-Kern-Last",
+					"unit": "%",
+					"value": 1,
+					"min": 0,
+					"max": 95,
+					"avg": 7.301441677588464
+				},
+				{
+					"id": 117440513,
+					"type": "Usage",
+					"labelOrig": "GPU Memory Controller Load",
+					"labelUser": "Auslastung des GPU-Speicher-Controllers",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 76,
+					"avg": 10.334207077326349
+				},
+				{
+					"id": 117440514,
+					"type": "Usage",
+					"labelOrig": "GPU Video Engine Load",
+					"labelUser": "GPU-Video-Engine-Last",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440515,
+					"type": "Usage",
+					"labelOrig": "GPU Bus Load",
+					"labelUser": "GPU-Buslast",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 2,
+					"avg": 0.09174311926605519
+				},
+				{
+					"id": 117440520,
+					"type": "Usage",
+					"labelOrig": "GPU Memory Usage",
+					"labelUser": "GPU-Speicher-Nutzung",
+					"unit": "%",
+					"value": 24.137576522044455,
+					"min": 22.966226299157302,
+					"max": 25.718992351612115,
+					"avg": 23.512928315914124
+				},
+				{
+					"id": 117440521,
+					"type": "Usage",
+					"labelOrig": "GPU D3D Usage",
+					"labelUser": "GPU D3D-Nutzung",
+					"unit": "%",
+					"value": 0.2680526380864938,
+					"min": 0.03741926246485529,
+					"max": 20.037099497624247,
+					"avg": 1.1224996765066588
+				},
+				{
+					"id": 117440522,
+					"type": "Usage",
+					"labelOrig": "GPU Video Decode 0 Usage",
+					"labelUser": "GPU Video Decode 0 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0.07684454744668555,
+					"avg": 0.00010071369259067578
+				},
+				{
+					"id": 117440532,
+					"type": "Usage",
+					"labelOrig": "GPU Video Encode 0 Usage",
+					"labelUser": "GPU Video Encode 0 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440533,
+					"type": "Usage",
+					"labelOrig": "GPU Video Encode 1 Usage",
+					"labelUser": "GPU Video Encode 1 Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 117440552,
+					"type": "Usage",
+					"labelOrig": "GPU VR Usage",
+					"labelUser": "GPU VR Auslastung",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "GPU Fan1",
+					"labelUser": "GPU Lüfter1",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "GPU Fan2",
+					"labelUser": "GPU Lüfter2",
+					"unit": "%",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217738,
+					"type": "Other",
+					"labelOrig": "Performance Limit - Power",
+					"labelUser": "Leistungsgrenze - Energieverbrauch",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217739,
+					"type": "Other",
+					"labelOrig": "Performance Limit - Thermal",
+					"labelUser": "Leistungsgrenze - Thermal",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217740,
+					"type": "Other",
+					"labelOrig": "Performance Limit - Reliability Voltage",
+					"labelUser": "Leistungsgrenze - Spannungs-Zuverlässigkeit",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217741,
+					"type": "Other",
+					"labelOrig": "Performance Limit - Max Operating Voltage",
+					"labelUser": "Leistungsgrenze - Max. Betriebsspannung",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217742,
+					"type": "Other",
+					"labelOrig": "Performance Limit - Utilization",
+					"labelUser": "Leistungsgrenze - Auslastung",
+					"unit": "Yes/No",
+					"value": 1,
+					"min": 1,
+					"max": 1,
+					"avg": 1
+				},
+				{
+					"id": 134217743,
+					"type": "Other",
+					"labelOrig": "Performance Limit - SLI GPUBoost Sync",
+					"labelUser": "Leistungsgrenze - SLI GPUBoost Sync",
+					"unit": "Yes/No",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217792,
+					"type": "Other",
+					"labelOrig": "Total GPU Power [% of TDP]",
+					"labelUser": "Gesamte GPU-Leistung [% von TDP]",
+					"unit": "%",
+					"value": 17.252,
+					"min": 6.301,
+					"max": 17.83,
+					"avg": 8.230416775884654
+				},
+				{
+					"id": 134217793,
+					"type": "Other",
+					"labelOrig": "Total GPU Power (normalized) [% of TDP]",
+					"labelUser": "Gesamte GPU-Leistung (normalisiert) [% von TDP]",
+					"unit": "%",
+					"value": 18.376,
+					"min": 6.357,
+					"max": 19.636,
+					"avg": 8.484812581913499
+				},
+				{
+					"id": 134217979,
+					"type": "Other",
+					"labelOrig": "GPU Memory Available",
+					"labelUser": "GPU Speicher verfügbar",
+					"unit": "MB",
+					"value": 12423.23046875,
+					"min": 12164.2578125,
+					"max": 12615.05078125,
+					"avg": 12525.522858985905
+				},
+				{
+					"id": 134217980,
+					"type": "Other",
+					"labelOrig": "GPU Memory Allocated",
+					"labelUser": "Zugeteilter GPU-Speicher",
+					"unit": "MB",
+					"value": 3952.76953125,
+					"min": 3760.94921875,
+					"max": 4211.7421875,
+					"avg": 3850.4771410140893
+				},
+				{
+					"id": 134217981,
+					"type": "Other",
+					"labelOrig": "GPU D3D Memory Dedicated",
+					"labelUser": "GPU D3D-Speicher dediziert",
+					"unit": "MB",
+					"value": 3633.37109375,
+					"min": 3441.37890625,
+					"max": 3892.76953125,
+					"avg": 3531.025649164482
+				},
+				{
+					"id": 134217982,
+					"type": "Other",
+					"labelOrig": "GPU D3D Memory Dynamic",
+					"labelUser": "GPU D3D-Speicher dynamisch",
+					"unit": "MB",
+					"value": 62.93359375,
+					"min": 60.890625,
+					"max": 574.44921875,
+					"avg": 67.71038458387942
+				},
+				{
+					"id": 134217983,
+					"type": "Other",
+					"labelOrig": "PCIe Link Speed",
+					"labelUser": "PCIe-Link-Geschwindigkeit",
+					"unit": "GT/s",
+					"value": 16,
+					"min": 2.5,
+					"max": 16,
+					"avg": 6.843381389252946
+				}
+			]
+		},
+		{
+			"id": 4027535360,
+			"instance": 0,
+			"nameOrig": "RTSS",
+			"readings": [
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Framerate",
+					"labelUser": "Bildrate",
+					"unit": "FPS",
+					"value": 30.799999237060547,
+					"min": 30.799999237060547,
+					"max": 30.799999237060547,
+					"avg": 30.799999237060547
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Framerate 1% Low",
+					"labelUser": "Bildrate 1% niedrig",
+					"unit": "FPS",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Framerate 0.1% Low",
+					"labelUser": "Bildrate 0.1% niedrig",
+					"unit": "FPS",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Frame Time",
+					"labelUser": "Rahmenzeit",
+					"unit": "ms",
+					"value": 33.465,
+					"min": 33.465,
+					"max": 33.465,
+					"avg": 33.46500000000005
+				}
+			]
+		},
+		{
+			"id": 4026591744,
+			"instance": 0,
+			"nameOrig": "Network: RealTek Semiconductor RTL8125 Gaming 2.5GbE Family Ethernet Controller",
+			"readings": [
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Total DL",
+					"labelUser": "Summe Download",
+					"unit": "MB",
+					"value": 530.8747110366821,
+					"min": 458.86623096466064,
+					"max": 530.8747110366821,
+					"avg": 521.5571851255385
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Total UP",
+					"labelUser": "Summe Upload",
+					"unit": "MB",
+					"value": 103.50553798675537,
+					"min": 93.39098930358887,
+					"max": 103.50553798675537,
+					"avg": 99.28704023423705
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Current DL rate",
+					"labelUser": "Aktuelle Download-Rate",
+					"unit": "KB/s",
+					"value": 5.505388983878847,
+					"min": 0,
+					"max": 7328.501649760035,
+					"avg": 47.229397459916406
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Current UP rate",
+					"labelUser": "Aktuelle Upload-Rate",
+					"unit": "KB/s",
+					"value": 4.901895304103566,
+					"min": 0,
+					"max": 295.14501953125,
+					"avg": 6.696404531377108
+				}
+			]
+		},
+		{
+			"id": 4026591744,
+			"instance": 1,
+			"nameOrig": "Network: MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+			"readings": [
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Total DL",
+					"labelUser": "Summe Download",
+					"unit": "MB",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217729,
+					"type": "Other",
+					"labelOrig": "Total UP",
+					"labelUser": "Summe Upload",
+					"unit": "MB",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217730,
+					"type": "Other",
+					"labelOrig": "Current DL rate",
+					"labelUser": "Aktuelle Download-Rate",
+					"unit": "KB/s",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				},
+				{
+					"id": 134217731,
+					"type": "Other",
+					"labelOrig": "Current UP rate",
+					"labelUser": "Aktuelle Upload-Rate",
+					"unit": "KB/s",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				}
+			]
+		},
+		{
+			"id": 4026535584,
+			"instance": 0,
+			"nameOrig": "Windows Hardware Errors (WHEA)",
+			"readings": [
+				{
+					"id": 134217728,
+					"type": "Other",
+					"labelOrig": "Total Errors",
+					"labelUser": "Summe Fehler",
+					"unit": "",
+					"value": 0,
+					"min": 0,
+					"max": 0,
+					"avg": 0
+				}
+			]
+		}
+	]
+}

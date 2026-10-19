@@ -1,0 +1,17 @@
+﻿<Project>
+
+	<PropertyGroup>
+		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageVersion Include="Hwinfo.SharedMemory.Net" Version="4.0.0" />
+		<PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+		<PackageVersion Include="ModelContextProtocol" Version="2.2.0" />
+	</ItemGroup>
+
+	<ItemGroup Label="Tests">
+		<PackageVersion Include="xunit.v3" Version="4.0.2" />
+	</ItemGroup>
+
+</Project>

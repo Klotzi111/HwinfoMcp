@@ -1,0 +1,25 @@
+﻿<Project>
+
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<LangVersion>14</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<!-- The IDE rules configured as warnings in .editorconfig are part of the build -->
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<Deterministic>true</Deterministic>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(CI)' == 'true' or '$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Authors>Klotzi111</Authors>
+		<Copyright>Copyright (c) Klotzi111</Copyright>
+		<RepositoryUrl>https://github.com/Klotzi111/HwinfoMcp</RepositoryUrl>
+	</PropertyGroup>
+
+</Project>

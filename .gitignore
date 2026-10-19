@@ -1,0 +1,28 @@
+# IDE
+.vs
+.vscode
+.idea
+.mcp.json
+.claude/settings.local.json
+
+# Output
+*/bin
+*/obj
+artifacts
+
+# Scratch space for one-off scripts and experiments that are not worth keeping.
+tmp
+
+# Nuget packages
+packages
+*.nupkg
+
+# Test result files
+TestResults
+*Tests/coverage.*.opencover.xml
+
+# Ignore csproj Backup files
+*.csproj.Backup.tmp
+
+# Ignore .user files
+*.user

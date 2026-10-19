@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, test and publish
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        run: |
+          # A tag v1.2.3 builds version 1.2.3, every other build the project's version with a CI suffix
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            if ($env:GITHUB_REF_NAME -notmatch '^v(\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?)$') { throw "Tag $env:GITHUB_REF_NAME is no version like v1.2.3" }
+            $arguments = "-p:Version=$($Matches[1])"
+          } else {
+            $arguments = "-p:VersionSuffix=ci.$env:GITHUB_RUN_NUMBER"
+          }
+          "msbuild-args=$arguments" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: dotnet restore HwinfoMcp.slnx
+
+      # CI=true turns warnings into errors (Directory.Build.props)
+      - name: Build
+        run: dotnet build HwinfoMcp.slnx --configuration Release --no-restore ${{ steps.version.outputs.msbuild-args }}
+
+      - name: Test
+        run: dotnet test --solution HwinfoMcp.slnx --configuration Release --no-build
+
+      - name: Publish (Native AOT)
+        run: dotnet publish HwinfoMcp/HwinfoMcp.csproj -p:PublishProfile=win-x64 ${{ steps.version.outputs.msbuild-args }}
+
+      - name: Check the executable
+        shell: pwsh
+        run: |
+          $exe = 'artifacts/publish/win-x64/HwinfoMcp.exe'
+          if (-not (Test-Path $exe)) { throw "$exe is missing" }
+          $files = Get-ChildItem artifacts/publish/win-x64
+          if ($files.Count -ne 1) { throw "Expected only HwinfoMcp.exe, found: $($files.Name -join ', ')" }
+          (Get-FileHash $exe -Algorithm SHA256).Hash.ToLowerInvariant() + '  HwinfoMcp.exe' | Out-File -Encoding ascii artifacts/publish/win-x64/HwinfoMcp.exe.sha256
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: HwinfoMcp-win-x64
+          path: artifacts/publish/win-x64/
+          if-no-files-found: error
+
+  release:
+    name: Release
+    needs: build
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: HwinfoMcp-win-x64
+          path: release
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME"
+          release/HwinfoMcp.exe release/HwinfoMcp.exe.sha256
+          --repo "$GITHUB_REPOSITORY"
+          --title "$GITHUB_REF_NAME"
+          --generate-notes
