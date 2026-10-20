@@ -1,4 +1,5 @@
-﻿using Hwinfo.SharedMemory;
+﻿using System.Diagnostics;
+using Hwinfo.SharedMemory;
 using HwinfoMcp.Catalog;
 using HwinfoMcp.Sensors;
 
@@ -24,38 +25,14 @@ public readonly record struct UnmeasuredPeriod(DateTimeOffset From, DateTimeOffs
 	public TimeSpan Duration => To - From;
 }
 
-/// <summary>A measurement that is running: where in the recorded timeline it starts, and where polls were dropped.</summary>
-/// <param name="name">The name, as given.</param>
-/// <param name="start">When it started.</param>
-/// <param name="firstSequence">The sequence number of its first snapshot.</param>
-internal sealed class RunningMeasurement(string name, DateTimeOffset start, long firstSequence)
-{
-	/// <summary>The name, as given.</summary>
-	public string Name { get; } = name;
-
-	/// <summary>When it started.</summary>
-	public DateTimeOffset Start { get; } = start;
-
-	/// <summary>The sequence number of its first snapshot: every snapshot from there on belongs to it.</summary>
-	public long FirstSequence { get; set; } = firstSequence;
-
-	/// <summary>
-	/// For every run of polls dropped because of the memory limit: the sequence number of the snapshot recorded
-	/// last before it.
-	/// </summary>
-	public List<long> DroppedAfter { get; } = [];
-
-	/// <summary>Whether the last poll was dropped, i.e. a run of dropped polls is going on.</summary>
-	public bool Dropping { get; set; }
-}
-
 /// <summary>
 /// The result of a stopped measurement: min, max, median and average of every reading, and the periods it has
 /// no snapshots for.
 /// </summary>
 public sealed class CompletedMeasurement
 {
-	private readonly Dictionary<SensorReading, ReadingStats> _stats;
+	// How many snapshots have a value of each reading; the other statistics travel in the readings themselves
+	private readonly Dictionary<SensorReading, int> _samples;
 
 	private CompletedMeasurement(
 		RunningMeasurement measurement,
@@ -74,9 +51,8 @@ public sealed class CompletedMeasurement
 		Gaps = gaps;
 		MemoryLimit = memoryLimit;
 
-		// The readings carry their statistics, so they are told apart by them too
 		var readings = new SensorReading[measured.Readings.Length];
-		_stats = new Dictionary<SensorReading, ReadingStats>(readings.Length);
+		_samples = new Dictionary<SensorReading, int>(readings.Length);
 		for (var i = 0; i < readings.Length; i++)
 		{
 			var stats = measured.Stats[i];
@@ -87,7 +63,7 @@ public sealed class CompletedMeasurement
 				ValueMax = stats.Max,
 				ValueAvg = stats.Avg,
 			};
-			_stats[readings[i]] = stats;
+			_samples[readings[i]] = stats.Samples;
 		}
 
 		Readings = new SensorSnapshot(SnapshotState.Available, LastSnapshot ?? stop, [.. readings], measured.Sensors);
@@ -129,7 +105,10 @@ public sealed class CompletedMeasurement
 	/// <summary>The statistics of one of the <see cref="Readings"/>.</summary>
 	public ReadingStats StatsOf(SensorReading reading)
 	{
-		return _stats.GetValueOrDefault(reading, ReadingStats.None);
+		// The readings are told apart by all their fields; a query that changed one would lose its samples
+		var found = _samples.TryGetValue(reading, out var samples);
+		Debug.Assert(found, $"'{reading.LabelOrig}' isn't one of the readings of the measurement.");
+		return new ReadingStats(reading.ValueMin, reading.ValueMax, reading.Value, reading.ValueAvg, found ? samples : Snapshots);
 	}
 
 	/// <summary>Evaluates a measurement that just stopped.</summary>

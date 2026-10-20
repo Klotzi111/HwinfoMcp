@@ -97,6 +97,13 @@ public static class HwinfoJson
 	{
 		var options = new JsonSerializerOptions(McpJsonUtilities.DefaultOptions);
 		options.TypeInfoResolverChain.Insert(0, HwinfoJsonContext.Default);
+		// The enum parameters only by their names: the SDK's JsonStringEnumConverter also binds any number, even
+		// one no member has. In front of it, as the first converter that can convert a type wins.
+		options.Converters.Insert(0, new JsonStringEnumConverter<MeasurementType>(allowIntegerValues: false));
+		options.Converters.Insert(0, new JsonStringEnumConverter<CpuDetail>(allowIntegerValues: false));
+		options.Converters.Insert(0, new JsonStringEnumConverter<CpuSection>(allowIntegerValues: false));
+		options.Converters.Insert(0, new JsonStringEnumConverter<GpuSelection>(allowIntegerValues: false));
+		options.Converters.Insert(0, new JsonStringEnumConverter<GpuSection>(allowIntegerValues: false));
 		options.MakeReadOnly();
 		return options;
 	}

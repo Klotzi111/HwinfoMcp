@@ -49,7 +49,8 @@ public sealed record HwinfoServerOptions(
 			}
 			else if (arg.Equals(MeasurementMemoryLimitSwitch, StringComparison.OrdinalIgnoreCase))
 			{
-				if (i + 1 < args.Count)
+				// Another switch right after it means the size is missing
+				if (i + 1 < args.Count && !args[i + 1].StartsWith("--", StringComparison.Ordinal))
 				{
 					limitArgument = args[++i];
 				}

@@ -143,7 +143,8 @@ measurement.
 - **No data.** Periods in which HWiNFO delivered no new data for more than 60 seconds (closed, paused, or the
   free version's 12 hours were up) are listed as gaps too. Stale values aren't recorded.
 - **Results.** The results of up to 100 stopped measurements are kept until the server stops. Starting a
-  measurement with the name of a stopped one replaces its result. Names are case-insensitive.
+  measurement with the name of a stopped one replaces its result. Names are case-insensitive, trimmed and at
+  most 100 characters long.
 
 ## Vendor independence
 

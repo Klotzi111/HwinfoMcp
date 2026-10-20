@@ -49,7 +49,9 @@ public sealed record RunningMeasurementInfo(string Name, DateTimeOffset Start, i
 /// <param name="Snapshots">How many snapshots are recorded for the running measurements.</param>
 /// <param name="UsedBytes">Roughly how much memory the recorded snapshots take.</param>
 /// <param name="MemoryLimit">The most memory the recorded snapshots may take.</param>
-/// <param name="LimitReached">Whether the last poll was dropped because the memory limit is reached.</param>
+/// <param name="LimitReached">
+/// Whether the last poll was dropped because the memory limit is reached, and no memory was freed since.
+/// </param>
 public sealed record MeasurementOverview(
 	IReadOnlyList<RunningMeasurementInfo> Running,
 	IReadOnlyList<CompletedMeasurement> Completed,
@@ -89,6 +91,12 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 	private readonly TimeProvider _timeProvider;
 	private readonly ILogger<MeasurementRecorder> _logger;
 	private readonly TimeSpan? _sampleInterval;
+
+	// Serializes the reads of HWiNFO's shared memory, so polls are recorded in order. Taken before _gate, never
+	// while holding it: a read may wait for HWiNFO's mutex, and queries of results mustn't wait with it.
+	private readonly Lock _readGate = new();
+
+	// Guards everything below
 	private readonly Lock _gate = new();
 
 	// The snapshots of the running measurements, oldest first, numbered consecutively
@@ -147,28 +155,32 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 	public MeasurementStart Start(string? name)
 	{
 		var checkedName = CheckName(name);
-		lock (_gate)
+		lock (_readGate)
 		{
-			ObjectDisposedException.ThrowIf(_disposed, this);
-			if (_running.ContainsKey(checkedName))
+			var current = _source.Read();
+			lock (_gate)
 			{
-				throw new MeasurementException(Messages.MeasurementAlreadyRunning(checkedName));
-			}
+				ObjectDisposedException.ThrowIf(_disposed, this);
+				if (_running.ContainsKey(checkedName))
+				{
+					throw new MeasurementException(Messages.MeasurementAlreadyRunning(checkedName));
+				}
 
-			var now = _timeProvider.GetUtcNow();
-			// Running before the read, so a dropped poll counts for it too
-			var measurement = new RunningMeasurement(checkedName, now, _nextSequence);
-			_running.Add(checkedName, measurement);
-			_completed.Remove(checkedName);
-			var (outcome, current) = SampleLocked(now);
-			if (outcome is SampleOutcome.Stored or SampleOutcome.Unchanged)
-			{
-				measurement.FirstSequence = _timeline[^1].Sequence;
-			}
+				var now = _timeProvider.GetUtcNow();
+				// Running before the poll is recorded, so a dropped poll counts for it too
+				var measurement = new RunningMeasurement(checkedName, now, _nextSequence);
+				_running.Add(checkedName, measurement);
+				var outcome = Record(current, now);
+				if (outcome is SampleOutcome.Stored or SampleOutcome.Unchanged)
+				{
+					measurement.FirstSequence = _timeline[^1].Sequence;
+				}
 
-			StartSampling();
-			LogStarted(_logger, checkedName, _running.Count);
-			return new MeasurementStart(checkedName, now, outcome, current, [.. _running.Values.Select(running => running.Name)]);
+				_completed.Remove(checkedName);
+				StartSampling();
+				LogStarted(_logger, checkedName, _running.Count);
+				return new MeasurementStart(checkedName, now, outcome, current, RunningNames());
+			}
 		}
 	}
 
@@ -177,32 +189,46 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 	/// <see cref="GetCompleted"/> if the measurement has snapshots.
 	/// </summary>
 	/// <param name="name">The name, case-insensitive.</param>
-	/// <exception cref="MeasurementException">No measurement with that name runs.</exception>
+	/// <exception cref="MeasurementException">No measurement with that name runs, or evaluating it failed.</exception>
 	public CompletedMeasurement Stop(string? name)
 	{
 		var checkedName = CheckName(name);
 		RunningMeasurement measurement;
 		List<StoredSnapshot> snapshots;
 		DateTimeOffset now;
-		lock (_gate)
+		lock (_readGate)
 		{
-			ObjectDisposedException.ThrowIf(_disposed, this);
-			if (!_running.TryGetValue(checkedName, out var running))
+			var latest = _source.Read();
+			lock (_gate)
 			{
-				throw new MeasurementException(Messages.MeasurementNotRunning(checkedName, RunningNames()));
-			}
+				ObjectDisposedException.ThrowIf(_disposed, this);
+				if (!_running.TryGetValue(checkedName, out var running))
+				{
+					throw new MeasurementException(Messages.MeasurementNotRunning(checkedName, RunningNames()));
+				}
 
-			measurement = running;
-			now = _timeProvider.GetUtcNow();
-			SampleLocked(now);
-			_running.Remove(checkedName);
-			var first = IndexOf(measurement.FirstSequence);
-			snapshots = _timeline.GetRange(first, _timeline.Count - first);
-			ReleaseUnneeded();
+				measurement = running;
+				now = _timeProvider.GetUtcNow();
+				Record(latest, now);
+				_running.Remove(checkedName);
+				var first = IndexOf(measurement.FirstSequence);
+				snapshots = _timeline.GetRange(first, _timeline.Count - first);
+				ReleaseUnneeded();
+			}
 		}
 
-		// Evaluated outside the lock, so the other measurements keep recording meanwhile
-		var completed = CompletedMeasurement.Evaluate(measurement, now, snapshots, MemoryLimit);
+		// Evaluated outside the locks, so the other measurements keep recording meanwhile
+		CompletedMeasurement completed;
+		try
+		{
+			completed = CompletedMeasurement.Evaluate(measurement, now, snapshots, MemoryLimit);
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException)
+		{
+			LogEvaluationFailed(_logger, ex, measurement.Name);
+			throw new MeasurementException(Messages.MeasurementEvaluationFailed(measurement.Name, ex.Message));
+		}
+
 		LogStopped(_logger, completed.Name, completed.Duration, completed.Snapshots);
 		if (completed.Snapshots > 0)
 		{
@@ -257,12 +283,19 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 		}
 	}
 
-	/// <summary>Reads HWiNFO's shared memory once and records the poll if it is new and a measurement runs.</summary>
-	internal SampleOutcome Sample()
+	/// <summary>
+	/// Reads HWiNFO's shared memory once and records the poll if it is new. Null if no measurement runs, as then
+	/// nothing is recorded.
+	/// </summary>
+	internal SampleOutcome? Sample()
 	{
-		lock (_gate)
+		lock (_readGate)
 		{
-			return _running.Count == 0 ? SampleOutcome.Unchanged : SampleLocked(_timeProvider.GetUtcNow()).Outcome;
+			var read = _source.Read();
+			lock (_gate)
+			{
+				return _disposed || _running.Count == 0 ? null : Record(read, _timeProvider.GetUtcNow());
+			}
 		}
 	}
 
@@ -312,19 +345,18 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 			: throw new MeasurementException(Messages.MeasurementNameTooLong(MaxNameLength));
 	}
 
-	/// <summary>Reads HWiNFO's shared memory and records the poll if it is new. Call with the lock held.</summary>
-	private (SampleOutcome Outcome, SensorSnapshot Read) SampleLocked(DateTimeOffset now)
+	/// <summary>Records a poll read from HWiNFO's shared memory if it is new. Call with <see cref="_gate"/> held.</summary>
+	private SampleOutcome Record(SensorSnapshot read, DateTimeOffset now)
 	{
-		var read = _source.Read();
 		if (!read.IsAvailable)
 		{
-			return (SampleOutcome.Unavailable, read);
+			return SampleOutcome.Unavailable;
 		}
 
 		// Frozen values, e.g. after the free version's 12 hours, are no measurement
 		if (now - read.PollTime > SensorPatterns.StaleAfter)
 		{
-			return (SampleOutcome.Stale, read);
+			return SampleOutcome.Stale;
 		}
 
 		// HWiNFO's poll time only has whole seconds, so a poll is new if the time or any value changed
@@ -332,7 +364,7 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 		var layout = last is not null && last.Layout.Matches(read) ? last.Layout : null;
 		if (layout is not null && last!.PollTime == read.PollTime && HasSameValues(last, read))
 		{
-			return (SampleOutcome.Unchanged, read);
+			return SampleOutcome.Unchanged;
 		}
 
 		layout ??= new SnapshotLayout(read);
@@ -341,7 +373,7 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 		if (_usedBytes + bytes + layoutBytes > MemoryLimit)
 		{
 			Drop();
-			return (SampleOutcome.Dropped, read);
+			return SampleOutcome.Dropped;
 		}
 
 		var values = new double[read.Readings.Length];
@@ -364,7 +396,7 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 			LogRecordingAgain(_logger);
 		}
 
-		return (SampleOutcome.Stored, read);
+		return SampleOutcome.Stored;
 	}
 
 	private static bool HasSameValues(StoredSnapshot snapshot, SensorSnapshot read)
@@ -431,6 +463,11 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 		}
 
 		_timeline.RemoveRange(0, count);
+		if (count > 0)
+		{
+			// There may be room for the next poll now; if not, it is dropped and reported again
+			_dropping = false;
+		}
 	}
 
 	/// <summary>The index in the timeline of the snapshot with that sequence number, or of where it will be.</summary>
@@ -442,6 +479,13 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 
 	private void Keep(CompletedMeasurement completed)
 	{
+		// A measurement started under the same name while this one was evaluated replaces its result, or will
+		if (_running.ContainsKey(completed.Name)
+			|| (_completed.TryGetValue(completed.Name, out var kept) && kept.Start > completed.Start))
+		{
+			return;
+		}
+
 		_completed[completed.Name] = completed;
 		while (_completed.Count > MaxKeptResults)
 		{
@@ -484,22 +528,14 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 		{
 			while (await timer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false))
 			{
-				lock (_gate)
+				try
 				{
-					if (cancellationToken.IsCancellationRequested)
-					{
-						return;
-					}
-
-					try
-					{
-						SampleLocked(_timeProvider.GetUtcNow());
-					}
-					catch (Exception ex) when (ex is not OutOfMemoryException)
-					{
-						// The next tick tries again; the measurements must keep running
-						LogSampleFailed(_logger, ex);
-					}
+					Sample();
+				}
+				catch (Exception ex) when (ex is not OutOfMemoryException)
+				{
+					// The next tick tries again; the measurements must keep running
+					LogSampleFailed(_logger, ex);
 				}
 			}
 		}
@@ -525,4 +561,7 @@ public sealed partial class MeasurementRecorder : IDisposable, IAsyncDisposable
 
 	[LoggerMessage(Level = LogLevel.Warning, Message = "Recording a poll for the running measurements failed")]
 	private static partial void LogSampleFailed(ILogger logger, Exception exception);
+
+	[LoggerMessage(Level = LogLevel.Error, Message = "Evaluating the measurement {Name} failed")]
+	private static partial void LogEvaluationFailed(ILogger logger, Exception exception, string name);
 }

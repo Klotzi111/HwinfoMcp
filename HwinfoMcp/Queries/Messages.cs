@@ -106,6 +106,12 @@ public static class Messages
 			: $"{text} Stopped measurements: {NameList(stopped)}.";
 	}
 
+	/// <summary>The answer when evaluating a stopped measurement failed.</summary>
+	public static string MeasurementEvaluationFailed(string name, string error)
+	{
+		return $"The measurement '{name}' is stopped, but evaluating it failed: {error}";
+	}
+
 	/// <summary>Says how to query the values of a stopped measurement.</summary>
 	public static string MeasurementHint(string name)
 	{

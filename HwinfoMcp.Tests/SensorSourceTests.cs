@@ -2,6 +2,7 @@
 using HwinfoMcp.Queries;
 using HwinfoMcp.Sensors;
 using HwinfoMcp.Tests.Fakes;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HwinfoMcp.Tests;
@@ -70,6 +71,39 @@ public sealed class SensorSourceTests
 		Assert.Equal(SnapshotState.Failed, snapshot.State);
 		Assert.Empty(snapshot.Readings);
 		Assert.Contains(error.Message, snapshot.Error, StringComparison.Ordinal);
+	}
+
+	[Fact]
+	public void Read_FailingAgain_WarnsOnce_UntilItIsReadableAgain()
+	{
+		// While a measurement runs, the source is read four times a second
+		var fail = true;
+		var expected = TestSnapshots.IntelNvidia;
+		var logger = new ListLogger<HwinfoSensorSource>();
+		var source = new HwinfoSensorSource(
+			(out readings) =>
+			{
+				if (fail)
+				{
+					throw new TimeoutException("HWiNFO's mutex is busy.");
+				}
+
+				readings = new SensorReadings(expected.PollTime, expected.Readings, expected.Sensors);
+				return true;
+			},
+			logger
+		);
+
+		source.Read();
+		source.Read();
+		source.Read();
+		Assert.Equal([LogLevel.Warning, LogLevel.Debug, LogLevel.Debug], logger.Levels);
+
+		fail = false;
+		source.Read();
+		fail = true;
+		source.Read();
+		Assert.Equal([LogLevel.Warning, LogLevel.Debug, LogLevel.Debug, LogLevel.Information, LogLevel.Warning], logger.Levels);
 	}
 
 	[Fact]

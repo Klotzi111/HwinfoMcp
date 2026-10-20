@@ -73,6 +73,17 @@ public sealed class ServerOptionsTests
 		Assert.Contains("needs a size", Assert.Single(invalid), StringComparison.Ordinal);
 	}
 
+	[Fact]
+	public void MemoryLimit_FollowedByASwitch_IsReportedAndTheSwitchStillCounts()
+	{
+		var options = Parse([HwinfoServerOptions.MeasurementMemoryLimitSwitch, HwinfoServerOptions.UserLabelsSwitch], out var unknown, out var invalid);
+
+		Assert.Equal(Gigabyte, options.MeasurementMemoryLimit);
+		Assert.Equal(Catalog.LabelStyle.User, options.Labels);
+		Assert.Empty(unknown);
+		Assert.Contains("needs a size", Assert.Single(invalid), StringComparison.Ordinal);
+	}
+
 	[Theory]
 	[InlineData("1GB", 1L << 30)]
 	[InlineData("1 gib", 1L << 30)]
@@ -98,13 +109,19 @@ public sealed class ServerOptionsTests
 	[InlineData("1XB")]
 	[InlineData("1,5GB")]
 	[InlineData("99999999TB")]
+	[InlineData("NaN")]
+	[InlineData("NaNGB")]
+	[InlineData("Infinity")]
 	public void ByteSize_RejectsWhatIsNoSize(string? text)
 	{
 		Assert.False(ByteSize.TryParse(text, out _));
 	}
 
 	[Theory]
+	[InlineData(1, "1 byte")]
 	[InlineData(800, "800 bytes")]
+	[InlineData((1L << 20) - 1, "1 MB")]
+	[InlineData((1L << 30) - 1, "1 GB")]
 	[InlineData(1L << 30, "1 GB")]
 	[InlineData(3L << 29, "1.5 GB")]
 	[InlineData(512L << 20, "512 MB")]

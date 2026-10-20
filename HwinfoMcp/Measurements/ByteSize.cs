@@ -39,7 +39,9 @@ public static class ByteSize
 			}
 		}
 
-		if (!double.TryParse(span, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var number))
+		// TryParse takes "NaN" and "Infinity" whatever the styles say
+		if (!double.TryParse(span, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var number)
+			|| !double.IsFinite(number))
 		{
 			return false;
 		}
@@ -59,14 +61,18 @@ public static class ByteSize
 	{
 		double value = bytes;
 		var unit = 0;
-		while (Math.Abs(value) >= 1024 && unit < s_formatUnits.Length - 1)
+		// Rounded as written, so just below 1 GB reads "1 GB" rather than "1024 MB"
+		while (Math.Round(Math.Abs(value), 1) >= 1024 && unit < s_formatUnits.Length - 1)
 		{
 			value /= 1024;
 			unit++;
 		}
 
-		return unit == 0
-			? string.Create(CultureInfo.InvariantCulture, $"{bytes} bytes")
-			: string.Create(CultureInfo.InvariantCulture, $"{value:0.#} {s_formatUnits[unit]}");
+		if (unit == 0)
+		{
+			return bytes == 1 ? "1 byte" : string.Create(CultureInfo.InvariantCulture, $"{bytes} bytes");
+		}
+
+		return string.Create(CultureInfo.InvariantCulture, $"{value:0.#} {s_formatUnits[unit]}");
 	}
 }

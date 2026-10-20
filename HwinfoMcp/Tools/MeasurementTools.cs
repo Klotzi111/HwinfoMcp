@@ -18,11 +18,11 @@ public sealed class MeasurementTools(MeasurementRecorder recorder, TimeProvider 
 	/// <summary>start_measurement</summary>
 	[McpServerTool(Name = "start_measurement", Title = "Start a measurement", ReadOnly = false, Destructive = false, Idempotent = false, OpenWorld = false)]
 	[Description(
-		"Starts a named measurement over a period, e.g. while a game or benchmark runs: from now on, every new "
-		+ "HWiNFO poll is recorded until stop_measurement is called with the same name. Several measurements can run "
+		"Starts a named measurement over a period, e.g. while a game or benchmark runs: it records HWiNFO's current "
+		+ "poll and every new one until stop_measurement is called with the same name. Several measurements can run "
 		+ "at once; they share the recorded data. Starting a name again replaces the result of the earlier one.")]
 	public CallToolResult StartMeasurement(
-		[Description("A name for the measurement, e.g. \"gaming\" or \"render-test\". Case-insensitive; unique among the running measurements.")]
+		[Description("A name for the measurement, e.g. \"gaming\" or \"render-test\": at most 100 characters, case-insensitive, unique among the running measurements.")]
 		string name)
 	{
 		try

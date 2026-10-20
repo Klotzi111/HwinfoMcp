@@ -31,6 +31,8 @@ public sealed class McpServerTests
 
 	private static readonly string[] s_unknownSection = ["bogus"];
 
+	private static readonly int[] s_number = [1];
+
 	[Fact]
 	public async Task Handshake_ReportsServerInfoAndInstructions()
 	{
@@ -427,7 +429,46 @@ public sealed class McpServerTests
 
 		using var started = await server.CallAsync("start_measurement", new() { ["name"] = "a" });
 
-		Assert.Contains("memory limit of 1 bytes is reached", started.RootElement.GetProperty("warning").GetString(), StringComparison.Ordinal);
+		Assert.Contains("memory limit of 1 byte is reached", started.RootElement.GetProperty("warning").GetString(), StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData("get_readings")]
+	[InlineData("get_cpu")]
+	[InlineData("get_gpu")]
+	[InlineData("get_memory")]
+	public async Task DataTools_WithAMeasurement_ReportItsStatistics(string tool)
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+		using var started = await server.CallAsync("start_measurement", new() { ["name"] = "a" });
+		using var stopped = await server.CallAsync("stop_measurement", new() { ["name"] = "a" });
+
+		using var result = await server.CallAsync(tool, new() { ["measurement"] = "a" });
+
+		var text = result.RootElement.GetRawText();
+		Assert.Equal("measurement", result.RootElement.EnumerateObject().First().Name);
+		Assert.Contains("\"median\":", text, StringComparison.Ordinal);
+		Assert.DoesNotContain("\"value\":", text, StringComparison.Ordinal);
+	}
+
+	[Theory]
+	[InlineData("get_readings", "types", "Temp")]
+	[InlineData("get_cpu", "include", "limits")]
+	[InlineData("get_gpu", "include", "fans")]
+	public async Task EnumValueAsNumber_NamesTheAllowedValues(string tool, string parameter, string allowedValue)
+	{
+		await using var server = await TestServer.StartAsync(TestSnapshots.Amd);
+
+		var result = await server.Client.CallToolAsync(
+			tool,
+			new Dictionary<string, object?> { [parameter] = s_number },
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(result.IsError);
+		var text = Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text;
+		Assert.StartsWith($"Invalid arguments for '{tool}'", text, StringComparison.Ordinal);
+		Assert.Contains($"\"{allowedValue}\"", text, StringComparison.Ordinal);
 	}
 
 	private static SensorSnapshot CpuSnapshot(DateTimeOffset pollTime, double power)

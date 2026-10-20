@@ -275,29 +275,130 @@ public sealed class MeasurementRecorderTests
 	}
 
 	[Fact]
-	public async Task Timer_RecordsNewPollsWhileAMeasurementRuns()
+	public async Task Timer_RecordsNewPollsWhileAMeasurementRuns_AgainAfterARestart()
 	{
-		var recorder = new MeasurementRecorder(_source, TimeProvider.System, long.MaxValue, NullLogger<MeasurementRecorder>.Instance, TimeSpan.FromMilliseconds(10));
-		await using (recorder)
+		await using var recorder = TimedRecorder();
+		var now = DateTimeOffset.UtcNow;
+		_source.Snapshot = Snapshot(now, power: 50);
+		recorder.Start("a");
+		_source.Snapshot = Snapshot(now, power: 60);
+		Assert.True(await RecordedAsync(recorder, snapshots: 2), "The timer didn't record the second poll.");
+		recorder.Stop("a");
+
+		// Nothing runs, so the timer stopped; a new measurement starts it again
+		recorder.Start("b");
+		_source.Snapshot = Snapshot(now, power: 70);
+
+		Assert.True(await RecordedAsync(recorder, snapshots: 2), "The timer didn't record after the restart.");
+	}
+
+	[Fact]
+	public async Task DisposeAsync_WhileAMeasurementRuns_StopsTheTimer()
+	{
+		var recorder = TimedRecorder();
+		_source.Snapshot = Snapshot(DateTimeOffset.UtcNow, power: 50);
+		recorder.Start("a");
+
+		await recorder.DisposeAsync();
+
+		Assert.Throws<ObjectDisposedException>(() => recorder.Start("b"));
+		Assert.Null(recorder.Sample());
+	}
+
+	[Fact]
+	public void PollDroppedAtTheStop_IsAGapUntilTheStop()
+	{
+		var recorder = CreateRecorder(memoryLimit: RoomFor(1));
+		Poll(0, power: 50);
+		recorder.Start("a");
+		Poll(2, power: 60);
+		_clock.Now = s_start.AddSeconds(3);
+
+		var result = recorder.Stop("a");
+
+		Assert.Equal(1, result.Snapshots);
+		// The only snapshot was polled before the start, so the gap starts with the start
+		Assert.Equal(new UnmeasuredPeriod(s_start.AddSeconds(0.5), s_start.AddSeconds(3), GapReason.MemoryLimit), Assert.Single(result.Gaps));
+	}
+
+	[Fact]
+	public void StartOnARecordedPollWhileTheLimitIsReached_CountsTheGapFromTheStart()
+	{
+		var recorder = CreateRecorder(memoryLimit: RoomFor(1));
+		Poll(0, power: 50);
+		recorder.Start("a");
+		_clock.Now = s_start.AddSeconds(1);
+		Assert.Equal(SampleOutcome.Unchanged, recorder.Start("b").Outcome);
+		Poll(2, power: 60);
+		Assert.Equal(SampleOutcome.Dropped, recorder.Sample());
+		_clock.Now = s_start.AddSeconds(4);
+
+		var b = recorder.Stop("b");
+
+		Assert.Equal(1, b.Snapshots);
+		Assert.Equal(new UnmeasuredPeriod(s_start.AddSeconds(1), s_start.AddSeconds(4), GapReason.MemoryLimit), Assert.Single(b.Gaps));
+	}
+
+	[Fact]
+	public void LimitReached_IsClearedWhenStoppingFreesMemory()
+	{
+		var recorder = CreateRecorder(memoryLimit: RoomFor(2));
+		Poll(0, power: 50);
+		recorder.Start("a");
+		Poll(2, power: 60);
+		recorder.Start("b");
+		Poll(4, power: 70);
+		recorder.Sample();
+		Assert.True(recorder.GetOverview().LimitReached);
+
+		recorder.Stop("a");
+
+		Assert.False(recorder.GetOverview().LimitReached);
+	}
+
+	[Fact]
+	public void Results_BeyondTheLimit_TheOldestGo()
+	{
+		var recorder = CreateRecorder();
+		for (var i = 0; i <= MeasurementRecorder.MaxKeptResults; i++)
 		{
-			var now = DateTimeOffset.UtcNow;
-			_source.Snapshot = Snapshot(now, power: 50);
-			recorder.Start("a");
-			_source.Snapshot = Snapshot(now, power: 60);
-
-			var deadline = DateTime.UtcNow.AddSeconds(10);
-			while (recorder.GetOverview().Snapshots < 2 && DateTime.UtcNow < deadline)
-			{
-				await Task.Delay(10, TestContext.Current.CancellationToken);
-			}
-
-			Assert.Equal(2, recorder.Stop("a").Snapshots);
+			Poll(i, power: i);
+			recorder.Start($"m{i}");
+			recorder.Stop($"m{i}");
 		}
+
+		var overview = recorder.GetOverview();
+		Assert.Equal(MeasurementRecorder.MaxKeptResults, overview.Completed.Count);
+		Assert.Equal("m1", overview.Completed[0].Name);
+		Assert.Throws<MeasurementException>(() => recorder.GetCompleted("m0"));
 	}
 
 	private MeasurementRecorder CreateRecorder(long memoryLimit = HwinfoServerOptions.DefaultMeasurementMemoryLimit)
 	{
 		return new MeasurementRecorder(_source, _clock, memoryLimit, NullLogger<MeasurementRecorder>.Instance, sampleInterval: null);
+	}
+
+	/// <summary>A recorder whose timer reads every 10 ms, on the real clock.</summary>
+	private MeasurementRecorder TimedRecorder()
+	{
+		return new MeasurementRecorder(_source, TimeProvider.System, long.MaxValue, NullLogger<MeasurementRecorder>.Instance, TimeSpan.FromMilliseconds(10));
+	}
+
+	/// <summary>Waits up to 10 seconds for the timer to record that many snapshots.</summary>
+	private static async Task<bool> RecordedAsync(MeasurementRecorder recorder, int snapshots)
+	{
+		var deadline = DateTime.UtcNow.AddSeconds(10);
+		while (recorder.GetOverview().Snapshots < snapshots)
+		{
+			if (DateTime.UtcNow > deadline)
+			{
+				return false;
+			}
+
+			await Task.Delay(10, TestContext.Current.CancellationToken);
+		}
+
+		return true;
 	}
 
 	/// <summary>Makes HWiNFO's current poll one from <paramref name="seconds"/> after the start, read half a second later.</summary>

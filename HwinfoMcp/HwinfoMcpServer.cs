@@ -22,10 +22,10 @@ public static class HwinfoMcpServer
 
 	/// <summary>The instructions the server gives MCP clients on how to use the tools.</summary>
 	public const string Instructions =
-		"Read-only access to the live sensor data of HWiNFO on this Windows PC. "
+		"Access to the live sensor data of HWiNFO on this Windows PC; nothing is ever written to HWiNFO. "
 		+ "Use get_cpu, get_gpu and get_memory for curated overviews, and list_sensors with get_readings for "
 		+ "anything else (drives, mainboard, fans, network, PresentMon/RTSS framerates, ...). "
-		+ "Every call returns current values; call again to see how they change. "
+		+ "Without measurement, every call returns current values; call again to see how they change. "
 		+ "To measure over a period, call start_measurement with a name and later stop_measurement, then pass the "
 		+ "name as measurement to get_cpu, get_gpu, get_memory or get_readings for min, max, median and average. "
 		+ "If a tool reports no data or stale data, check hwinfo_status.";
@@ -62,11 +62,12 @@ public static class HwinfoMcpServer
 				{
 					return await next(context, cancellationToken);
 				}
-				catch (Exception ex) when (ex is JsonException or ArgumentException)
+				catch (Exception ex) when (ex is JsonException or ArgumentException { ParamName: "arguments" })
 				{
 					// The SDK binds the arguments with System.Text.Json before the tool runs, throws an
-					// ArgumentException for a missing required one, and would only answer "An error occurred
-					// invoking '...'." Name the allowed values instead.
+					// ArgumentException for the arguments when a required one is missing, and would only answer
+					// "An error occurred invoking '...'." Name the allowed values instead. ArgumentExceptions of
+					// the tools themselves are no argument errors of the client.
 					return ToolArgumentErrors.Create(context, ex);
 				}
 			}));

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Numerics;
 using Hwinfo.SharedMemory;
 
 namespace HwinfoMcp.Measurements;
@@ -118,8 +119,9 @@ internal static class MeasurementStatistics
 	}
 
 	/// <summary>
-	/// Merges the readings of all layouts the snapshots have: a reading is identified by its sensor group and its
-	/// ID, so it keeps its statistics when HWiNFO adds or removes other readings in between.
+	/// Merges the readings of all layouts the snapshots have: a reading is identified by its sensor group, its ID
+	/// and its unit, so it keeps its statistics when HWiNFO adds or removes other readings in between, but values
+	/// in another unit (e.g. after switching from °C to °F) aren't mixed with it.
 	/// </summary>
 	/// <returns>
 	/// The readings, the sensor groups, and for each layout the index into the readings of each of its readings.
@@ -128,7 +130,8 @@ internal static class MeasurementStatistics
 		IReadOnlyList<StoredSnapshot> snapshots)
 	{
 		var readings = new List<SensorReading>();
-		var readingIndex = new Dictionary<(uint SensorId, uint Instance, uint ReadingId), int>();
+		// The readings with a key in the order a layout lists them; more than one only if HWiNFO lists a key twice
+		var readingIndices = new Dictionary<(uint SensorId, uint Instance, uint ReadingId, string Unit), List<int>>();
 		var sensors = new List<Sensor>();
 		var sensorIndex = new Dictionary<(uint Id, uint Instance), int>();
 		var indices = new Dictionary<SnapshotLayout, int[]>(ReferenceEqualityComparer.Instance);
@@ -154,26 +157,32 @@ internal static class MeasurementStatistics
 			}
 
 			var index = new int[layout.Readings.Length];
-			var taken = new HashSet<int>();
+			var occurrences = new Dictionary<(uint SensorId, uint Instance, uint ReadingId, string Unit), int>();
 			for (var i = 0; i < index.Length; i++)
 			{
 				var reading = layout.Readings[i];
-				var key = (reading.Sensor.Id, reading.Sensor.Instance, reading.ReadingId);
-				if (readingIndex.TryGetValue(key, out var known) && taken.Add(known))
+				var key = (reading.Sensor.Id, reading.Sensor.Instance, reading.ReadingId, reading.Unit);
+				// The n-th reading with a key in this layout is the n-th one with that key in the others
+				var occurrence = occurrences.GetValueOrDefault(key);
+				occurrences[key] = occurrence + 1;
+				if (!readingIndices.TryGetValue(key, out var known))
+				{
+					known = [];
+					readingIndices.Add(key, known);
+				}
+
+				if (occurrence < known.Count)
 				{
 					// The latest names win
-					readings[known] = reading;
+					readings[known[occurrence]] = reading;
 				}
 				else
 				{
-					// New, or listed twice in one layout: then the second one is a reading of its own
-					known = readings.Count;
-					readingIndex[key] = known;
+					known.Add(readings.Count);
 					readings.Add(reading);
-					taken.Add(known);
 				}
 
-				index[i] = known;
+				index[i] = known[occurrence];
 			}
 
 			indices.Add(layout, index);
@@ -282,15 +291,29 @@ internal static class MeasurementStatistics
 
 	/// <summary>
 	/// Moves the k-th smallest value to index k, the smaller ones before it and the larger ones behind it, and
-	/// returns it (quickselect). The three-way partition copes with the long runs of equal values sensors report.
+	/// returns it. Quickselect with pivots from random positions, as sensor values often rise or fall steadily,
+	/// which defeats pivots from fixed positions; the three-way partition copes with long runs of equal values.
+	/// Should the pivots still be unlucky, the rest is sorted, so it never takes much longer than sorting.
 	/// </summary>
 	private static double Select(Span<double> values, int k)
 	{
 		var left = 0;
 		var right = values.Length - 1;
+		var passesLeft = 2 * (BitOperations.Log2((uint)values.Length) + 1);
 		while (left < right)
 		{
-			var pivot = MedianOfThree(values[left], values[left + ((right - left) / 2)], values[right]);
+			if (passesLeft-- == 0)
+			{
+				values[left..(right + 1)].Sort();
+				return values[k];
+			}
+
+			var count = right - left + 1;
+			var pivot = MedianOfThree(
+				values[left + Random.Shared.Next(count)],
+				values[left + Random.Shared.Next(count)],
+				values[left + Random.Shared.Next(count)]
+			);
 			var below = left;
 			var current = left;
 			var above = right;

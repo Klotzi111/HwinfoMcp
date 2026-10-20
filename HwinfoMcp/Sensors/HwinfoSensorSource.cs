@@ -7,10 +7,14 @@ namespace HwinfoMcp.Sensors;
 /// Reads the sensor data of the local HWiNFO instance from its shared memory. Read-only: it neither
 /// writes to the shared memory nor starts or controls HWiNFO.
 /// </summary>
-public sealed class HwinfoSensorSource : ISensorSource
+public sealed partial class HwinfoSensorSource : ISensorSource
 {
 	private readonly TryReadReadings _tryRead;
 	private readonly ILogger<HwinfoSensorSource> _logger;
+
+	// The error of the last read, if it failed: an error that persists is only warned about once, rather than on
+	// every read of a running measurement
+	private string? _lastError;
 
 	/// <summary>Creates the source.</summary>
 	/// <param name="reader">The shared reader. It caches the mapping, so it must live as long as the server.</param>
@@ -39,15 +43,25 @@ public sealed class HwinfoSensorSource : ISensorSource
 		{
 			if (_tryRead(out var readings))
 			{
+				if (Interlocked.Exchange(ref _lastError, null) is not null)
+				{
+					LogReadableAgain(_logger);
+				}
+
 				return SensorSnapshot.FromReadings(readings);
 			}
 
-			_logger.LogDebug("HWiNFO shared memory is not available");
+			Interlocked.Exchange(ref _lastError, null);
+			LogUnavailable(_logger);
 			return SensorSnapshot.Unavailable;
 		}
 		catch (UnauthorizedAccessException ex)
 		{
-			_logger.LogWarning(ex, "Access to the HWiNFO shared memory was denied");
+			if (IsNewError(ex))
+			{
+				LogAccessDenied(_logger, ex);
+			}
+
 			return SensorSnapshot.Failed(
 				"Access to HWiNFO's shared memory was denied. Run HWiNFO and this server under the same user."
 			);
@@ -56,8 +70,40 @@ public sealed class HwinfoSensorSource : ISensorSource
 		{
 			// The reader throws for sections it cannot parse, for a busy mutex and once disposed. None of
 			// that may take the server down: the tool result reports it instead.
-			_logger.LogWarning(ex, "Reading the HWiNFO shared memory failed");
+			if (IsNewError(ex))
+			{
+				LogReadFailed(_logger, ex);
+			}
+
 			return SensorSnapshot.Failed($"Reading HWiNFO's shared memory failed: {ex.Message}");
 		}
 	}
+
+	/// <summary>Whether the error differs from that of the last read. Logs a repeated one at the debug level.</summary>
+	private bool IsNewError(Exception exception)
+	{
+		var error = $"{exception.GetType().FullName}: {exception.Message}";
+		if (Interlocked.Exchange(ref _lastError, error) != error)
+		{
+			return true;
+		}
+
+		LogStillFailing(_logger, error);
+		return false;
+	}
+
+	[LoggerMessage(Level = LogLevel.Debug, Message = "HWiNFO shared memory is not available")]
+	private static partial void LogUnavailable(ILogger logger);
+
+	[LoggerMessage(Level = LogLevel.Warning, Message = "Access to the HWiNFO shared memory was denied")]
+	private static partial void LogAccessDenied(ILogger logger, Exception exception);
+
+	[LoggerMessage(Level = LogLevel.Warning, Message = "Reading the HWiNFO shared memory failed")]
+	private static partial void LogReadFailed(ILogger logger, Exception exception);
+
+	[LoggerMessage(Level = LogLevel.Debug, Message = "Reading the HWiNFO shared memory failed again: {Error}")]
+	private static partial void LogStillFailing(ILogger logger, string error);
+
+	[LoggerMessage(Level = LogLevel.Information, Message = "The HWiNFO shared memory is readable again")]
+	private static partial void LogReadableAgain(ILogger logger);
 }

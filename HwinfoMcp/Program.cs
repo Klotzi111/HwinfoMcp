@@ -77,7 +77,8 @@ internal static partial class Program
 		builder.Services.AddSingleton(serverOptions);
 		builder.Services.AddHwinfoMcpServer().WithStdioServerTransport();
 
-		using var host = builder.Build();
+		// RunAsync disposes the host when it ends
+		var host = builder.Build();
 		var logger = host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("HwinfoMcp");
 		LogStarted(
 			logger,
