@@ -11,7 +11,7 @@
 		<AssetTargetFallback>$(AssetTargetFallback);net10.0-windows7.0</AssetTargetFallback>
 		<AssemblyName>HwinfoMcp</AssemblyName>
 		<RootNamespace>HwinfoMcp</RootNamespace>
-		<VersionPrefix>0.1.0</VersionPrefix>
+		<VersionPrefix>0.2.0</VersionPrefix>
 		<Product>hwinfo-mcp-dotnet</Product>
 		<Description>MCP server (stdio) that exposes live HWiNFO sensor data read from HWiNFO's shared memory.</Description>
 	</PropertyGroup>
